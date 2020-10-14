@@ -1,0 +1,108 @@
+:root {
+    --color1: white;
+    --color2: rgba(153, 34, 34, 0.72);
+    --receiveColor: rgba(44, 129, 27, 0.758);
+  }
+
+.TriangleField {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    height: 100%;
+    width: 100%;
+}
+
+.trianglePart {
+  background-color: black;
+  flex: 1 1 auto;
+}
+
+
+.triangleLeftUpWhite {
+  left: 0px;
+  background: linear-gradient(to left top, var(--color1) 0%, var(--color2) 49%, transparent 51%);
+}
+
+.triangleLeftUpBlack {
+  left: 0px;
+  background: linear-gradient(to left top, black 0%, darkgray 49%, transparent 51%);
+}
+
+.triangleRightUpWhite {
+  left: 50%;
+  background: linear-gradient(to right top,  var(--color1) 0%, var(--color2) 49%, transparent 51%);
+}
+
+.triangleRightUpBlack {
+  left: 50%;
+  background: linear-gradient(to right top,  black 0%, darkgray 49%, transparent 51%);
+}
+.triangleLeftDownBlack {
+  left: 0px;
+  background: linear-gradient(to left bottom, black 0%, darkgray 49%, transparent 51%);
+}
+
+.triangleLeftDownWhite {
+  left: 0px;
+  background: linear-gradient(to left bottom, var(--color1) 0%, var(--color2) 49%, transparent 51%);
+}
+
+.triangleRightDownBlack {
+  left: 50%;
+  background: linear-gradient(to right bottom,  black 0%, darkgray 49%, transparent 51%);
+}
+.triangleRightDownWhite {
+  left: 50%;
+  background: linear-gradient(to right bottom, var(--color1) 0%, var(--color2) 49%, transparent 51%);
+}
+
+.triangleLeftUpReceivable {
+  left: 0;
+  background: linear-gradient(to left bottom, var(--receiveColor) 0%, var(--receiveColor) 49%, transparent 51%);
+}
+
+.ArrowUpBlack {
+    width: 0; 
+    height: 0; 
+    border-left: 60px solid transparent;
+    border-right: 60px solid transparent;
+    border-bottom: 300px solid black;
+  }
+
+.ArrowUpWhite {
+    width: 0; 
+    height: 0; 
+    border-left: 60px solid transparent;
+    border-right: 60px solid transparent;
+    border-bottom: 300px solid lightblue;
+  }
+  
+.ArrowDownBlack {
+    width: 0; 
+    height: 0; 
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-top: 90px solid black;
+  }
+
+.ArrowDownWhite {
+    width: 0; 
+    height: 0; 
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-top: 90px solid lightblue;
+  }
+  
+  .ArrowUpGradient1 {
+    width: 100px;
+    height: 100px;
+    border: 1px solid gray;
+    background: linear-gradient(30deg, transparent 37%, #f00 37%);
+  }
+  .ArrowUpGradient2 {
+    height: 100%;
+    background: linear-gradient(-30deg, transparent 37%, #fff 37%), 
+  }
+  .ArrowUpGradient3 {
+    background: linear-gradient(to bottom, #ccc, #000);
+  }

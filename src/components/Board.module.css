@@ -1,0 +1,51 @@
+.Board {
+    display: flex;
+    position: absolute;
+    background-color: lightgray;
+    width: 90%;
+    height: 90%;
+    border: 1px solid gray;
+    margin: 20px;
+
+}
+.LeftPanel {
+    height: 100%;
+    width: 100%;
+    background-color: lightsalmon;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    
+  
+}
+
+.RightPanel {
+    height: 100%;
+    width: 100%;
+    background-color: lightsalmon;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.Spacer {
+    background-color: lightblue;
+   
+    height: 50px;
+}
+
+.VerticalSpacer {
+    background-color: teal;
+    flex: 0 0 auto; /* prevent's changing size when text changes */
+    width: 150px;
+}
+
+.WhiteField {
+    background-color: white;
+}
+
+
+.BlackField {
+    background-color: black;
+}
+

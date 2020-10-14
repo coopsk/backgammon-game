@@ -1,0 +1,16 @@
+.Pawn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: white;
+    border: 1px solid darkgray;
+    align-self: center;
+    flex: 0 0 50px;
+    transition: transform .25s;
+    
+}
+
+.Canmove {
+    border: 5px solid yellow;
+    
+}
