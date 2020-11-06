@@ -8,15 +8,17 @@ import Pawn from './Pawn'
 class Board extends Component {
 
     render() {
-        const upperLeftPanel = <BoardSection type="upper-left" pawnPositions={this.props.pawnPositions} pieceMoved={this.props.pieceMoved} possibleMoves={this.props.possibleMoves}/>
-        const lowerLeftPanel = <BoardSection type="lower-left" pawnPositions = {this.props.pawnPositions} pieceMoved={this.props.pieceMoved} possibleMoves={this.props.possibleMoves}  />
-        const upperRightPanel = <BoardSection type="upper-right" pawnPositions={this.props.pawnPositions} pieceMoved={this.props.pieceMoved} possibleMoves={this.props.possibleMoves}  />
-        const lowerRightPanel = <BoardSection type="lower-right" pawnPositions = {this.props.pawnPositions} pieceMoved={this.props.pieceMoved} possibleMoves={this.props.possibleMoves}  />
+        const upperLeftPanel = <BoardSection type="upper-left" 
+        pawnPositions={this.props.pawnPositions} pieceMoved={this.props.pieceMoved} 
+        pieceMovedToField={this.props.pieceMovedToField} possibleMoves={this.props.possibleMoves} 
+        movingCheckerIndex={this.props.movingCheckerIndex}
+        currentPlayer={this.props.color}/>
+        const lowerLeftPanel = <BoardSection type="lower-left" pawnPositions = {this.props.pawnPositions} pieceMoved={this.props.pieceMoved} pieceMovedToField={this.props.pieceMovedToField} possibleMoves={this.props.possibleMoves} movingCheckerIndex={this.props.movingCheckerIndex} currentPlayer={this.props.color}/>
+        const upperRightPanel = <BoardSection type="upper-right" pawnPositions={this.props.pawnPositions} pieceMoved={this.props.pieceMoved} pieceMovedToField={this.props.pieceMovedToField} possibleMoves={this.props.possibleMoves} movingCheckerIndex={this.props.movingCheckerIndex} currentPlayer={this.props.color}/>
+        const lowerRightPanel = <BoardSection type="lower-right" pawnPositions = {this.props.pawnPositions} pieceMoved={this.props.pieceMoved} pieceMovedToField={this.props.pieceMovedToField} possibleMoves={this.props.possibleMoves} movingCheckerIndex={this.props.movingCheckerIndex} currentPlayer={this.props.color}/>
        
-        let whiteOnBar;
         let barcomponents = [];
         if(this.props.bar[0].pawns > 0) {
-            whiteOnBar = true;
             let canMovePawn = false;
             if(this.props.possibleMoves.indexOf(0) === -1 || this.props.possibleMoves.indexOf(0) ===24) {
                 canMovePawn=true;

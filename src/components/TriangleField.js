@@ -25,12 +25,15 @@ const triangleField = (props) => {
         }
     }
 
+    let allClassesLeft = [triangleDirectionLeft, classes.trianglePart];
+    let allClassesRight = [triangleDirectionRight, classes.trianglePart];
+    let triangleClasses = props.isDestField ? [classes.TriangleField, classes.MoveSelected] : [classes.TriangleField];
+
     return (
-       /* <img src={triangle} alt="Triangle" class="triangle" />*/
-       /*<div className={directionColor + " " + classes.TriangleField}></div>*/
-       <div className={classes.TriangleField} /* onClick={() => props.pieceMoved(props.index)}*/>
-           <div className={triangleDirectionLeft + " " + classes.trianglePart}></div>
-           <div className={triangleDirectionRight + " " + classes.trianglePart}></div>
+<div className={triangleClasses.join(' ')} onClick={() => props.isDestField ? props.pieceMoved(props.index) : undefined }
+            >
+           <div className={allClassesLeft.join(' ')}></div>
+           <div className={allClassesRight.join(' ')}></div>
            {props.children}
        </div>
             

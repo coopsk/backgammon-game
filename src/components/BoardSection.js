@@ -7,6 +7,7 @@ const boardSection = (props) => {
 
     var parentEl = document.getElementById("cards");
 
+
     function sortPawns() {
         var cards = document.getElementsByClassName(classes.PawnWrapper),
         cw = parentEl.clientWidth,
@@ -17,6 +18,57 @@ const boardSection = (props) => {
         for (var i = 1; i < cards.length; i++) {
             cards[i].style.transform = "translateX(-" + offset * i + "px)";
         }
+    }
+
+    function getSelectableFields() {
+        let possibleMoves = [];
+        if(props.movingCheckerIndex === false) { 
+            const possibleMoveIndexArray = Object.keys(props.possibleMoves);
+            //console.log("this.state.remainingMoves: " + props.possibleMoves);
+        
+            possibleMoves = possibleMoveIndexArray.map((item) => {
+                return Number(item);
+            });
+        }
+        return possibleMoves;
+    }
+
+    function getDestinationFields(currentIndex, color) {
+            // TODO: right now props.possibleMoves returns the wrong length even though the values are correct.
+            // When I'm done using deepCopy in getPossibleMoves(), it should work.
+        // const copyA = [...props.possibleMoves];
+        let possibleMoves = [];
+        //if(props.movingCheckerIndex === currentIndex) { 
+        if(props.movingCheckerIndex != false) {
+            let destMoves = props.possibleMoves[props.movingCheckerIndex];
+            possibleMoves = destMoves.map((dice) => {
+                if(props.currentPlayer === "Black") {
+                    return parseInt(props.movingCheckerIndex) - dice + 1;
+                } else {
+                    return parseInt(props.movingCheckerIndex) + dice + 1;
+                }
+            })
+            /*
+            const possibleMoveIndexArray = Object.keys(props.possibleMoves);
+            console.log("this.state.remainingMoves: " + props.possibleMoves);
+            const possibleMovesNumbers = possibleMoveIndexArray.map((item) => {
+                return Number(item);
+            });
+            
+            for(let index in props.possibleMoves) {
+                possibleMoves = possibleMoves.concat(props.possibleMoves[index].map((dice) => {
+                    return parseInt(index) + dice;
+                }));
+                
+            // possibleMovesNumbers.map((key) => {
+            //     return props.possibleMoves[key].map((dice) => {
+            //         return key + dice;
+            //     });
+            // });
+            }
+            */
+        }
+        return possibleMoves;
     }
 
     function createPawnsOnBoard(position) {
@@ -31,8 +83,14 @@ const boardSection = (props) => {
             else
                 color = "Black";
 
+            let lenPossMoves = props.possibleMoves.length;
+            if(lenPossMoves !== 0) {
+                //console.log("lsdkjfsd");
+            }
+
             let canMovePawn = false;
-            if(props.possibleMoves.indexOf(index) !== -1) {
+            const checkMoves = getSelectableFields();
+            if(checkMoves/*props.possibleMoves*/.indexOf(index) !== -1) {
                 canMovePawn = true;
             }
             for(let i=0;i<nbr; i++) {
@@ -56,12 +114,29 @@ const boardSection = (props) => {
     }
 
     function constructField(index, color, direction) {
+        // Why is destFields empty? 
+        /*
+        let possibleMovesNumbers = [];
+        if(props.possibleMoves != null) {
+            possibleMovesNumbers = Object.keys(props.possibleMoves).map((item) => { return Number(item); });
+        }
+
+        let destFields = possibleMovesNumbers.map((key) => {
+            return props.possibleMoves[key].map((dice) => {
+            return key + dice;
+            });
+        });
+        */
+        const destinationFields = getDestinationFields(index, color);
+        //let canReceive = destinationFields.length > 0;
+        //let canReceive = index - 1 === props.movingCheckerIndex;
+       let canReceive = destinationFields.indexOf(index) != -1;
         return (
-        <TriangleField Color={color} Direction={direction} pieceMoved={props.pieceMoved} index={index}>
+        <TriangleField Color={color} Direction={direction} pieceMoved={props.pieceMoved} isDestField={canReceive} index={index}>
             {createPawnsOnBoard(index)}
         </TriangleField>);
     }
-
+    
     let section = null;
 
     if(props.type === "upper-left" || props.type === "upper-right") {
