@@ -4,7 +4,7 @@
     background-color: lightgray;
     width: 90%;
     height: 90%;
-    border: 1px solid gray;
+    
     margin: 20px;
 
 }
@@ -35,9 +35,14 @@
 }
 
 .VerticalSpacer {
-    background-color: teal;
+    background-color: #42320f;
     flex: 0 0 auto; /* prevent's changing size when text changes */
     width: 150px;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .WhiteField {

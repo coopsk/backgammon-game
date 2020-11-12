@@ -1,0 +1,22 @@
+
+.whiteChecker {
+
+    height: 20px;
+    background-color: white;
+    border: 1px solid gray;
+    border-radius: 5px;
+    box-shadow: -3px -3px 5px 5px rgba(0, 0, 0, 0.5) inset, 2px 2px 5px 5px rgba(255, 255, 255, 0.0) inset;
+    margin: 2px 0 1px 0;
+}
+
+
+.blackChecker {
+
+    height: 20px;
+    background-color: #3c3232;
+    border: 1px solid #404040
+    ;
+    border-radius: 5px;
+    box-shadow: -3px -3px 5px 5px rgba(0, 0, 0, 0.5) inset, 2px 2px 5px 5px rgba(255, 255, 255, 0.0) inset;
+    margin: 2px 0 1px 0;
+}

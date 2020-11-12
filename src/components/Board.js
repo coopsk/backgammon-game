@@ -4,6 +4,7 @@ import BoardSection from './BoardSection'
 import RollDiceButton from './RollDiceBtn'
 import Bar from './Bar'
 import Pawn from './Pawn'
+import BearoffPanel from './BearoffPanel'
 
 class Board extends Component {
 
@@ -20,7 +21,7 @@ class Board extends Component {
         let barcomponents = [];
         if(this.props.bar[0].pawns > 0) {
             let canMovePawn = false;
-            if(this.props.possibleMoves.indexOf(0) === -1 || this.props.possibleMoves.indexOf(0) ===24) {
+            if(this.props.possibleMoves[-1] !== undefined || this.props.possibleMoves[24] !== undefined) {
                 canMovePawn=true;
             }
             for(let i=0; i<this.props.bar[0].pawns; i++) {
@@ -29,13 +30,33 @@ class Board extends Component {
         }
         if(this.props.bar[1].pawns > 0) {
         let canMovePawn = false;
-        if(this.props.possibleMoves.indexOf(0) === -1 || this.props.possibleMoves.indexOf(0) ===24) {
+        if(this.props.possibleMoves[-1] !== undefined || this.props.possibleMoves[24] !== undefined) {
             canMovePawn=true;
         }
           for(let i=0; i<this.props.bar[1].pawns; i++) {
             barcomponents.push(<Pawn key={i} Color="Black" pieceMoved={this.props.pieceMoved} canMove={canMovePawn} index="24"/>);
           }
         }
+
+        // GetPossibleMove doesn't return the correct thing for movingCheckerIndex = 3 (the 4th checker). It only considers the die 1 but not 4
+        let possibleMoves1 = [];
+        if(this.props.movingCheckerIndex !== false) {
+            let destMoves = this.props.possibleMoves[this.props.movingCheckerIndex];
+            possibleMoves1 = destMoves.map((dice) => {
+                if(this.props.color === "Black") {
+                    return parseInt(this.props.movingCheckerIndex) - dice + 1;
+                } else {
+                    return parseInt(this.props.movingCheckerIndex) + dice + 1;
+                }
+            });
+        }
+        
+        let outerBoardInfo = {
+            checkersAtHome: this.props.checkersAtHome,
+            whiteCanBearOff: possibleMoves1.indexOf(25) != -1 ? true : false,
+            blackCanBearOff: possibleMoves1.indexOf(0) != -1 ? true : false
+        };
+
         return (
             <div className={classes.Board}>
                 <div className={classes.LeftPanel} >
@@ -61,6 +82,7 @@ class Board extends Component {
                     <div className={classes.Spacer}></div>  
                     {lowerRightPanel}  
                 </div>
+                <BearoffPanel onClick={this.props.pieceMoved} outerBoardInfo={outerBoardInfo}/>
                 
             </div>
         );

@@ -4,6 +4,11 @@ import Board from './components/Board';
 import Layout from './Layout/Layout';
 import _ from "lodash";
 
+const WHITE_HOME_INDEX = -1;
+const BLACK_HOME_INDEX = 24;
+const WHITE_PLAYER = 1;
+const BLACK_PLAYER = 2;
+
 class App extends Component {
 
   state = {
@@ -12,7 +17,7 @@ class App extends Component {
     currentPlayer: 1,
     dice: [],
     newDiceIndex: 0,
-    remainingMoves: [],
+    remainingMoves: {},
     bar: Array(2).fill( {pawns: 0 }),
     movingCheckerIndex: false
 
@@ -248,6 +253,7 @@ class App extends Component {
       remainingMoves: [],
       bar
     },  () => {
+      this.checkPlayerIsBearingOff(1);
       this.onThrowDice(4, 1);
     });
 
@@ -256,13 +262,18 @@ class App extends Component {
   // TODO: Anna can fill this out
   _test_checkBlackIsBearingOff = () => {
     let points = Array(24).fill({player: 0, pawns: 0});
-    points[0] = { player: 1, pawns: 1 };
-    points[1] = { player: 1, pawns: 2 };
-    points[19] = { player: 1, pawns: 1 };
-    points[20] = { player: 1, pawns: 4 };
-    points[21] = { player: 1, pawns: 2 };
-    //points[22] = { player: 1, pawns: 0 };
-    points[23] = { player: 1, pawns: 5 };
+    points[7] = { player: 1, pawns: 1 };
+    points[12] = { player: 1, pawns: 2 };
+    points[13] = { player: 1, pawns: 5 };
+    points[15] = { player: 1, pawns: 2 };
+    points[19] = { player: 1, pawns: 5 };
+    
+    points[5] = { player: 2, pawns: 5 };
+    points[4] = { player: 2, pawns: 2 };
+    points[3] = { player: 2, pawns: 1 };
+    points[2] = { player: 2, pawns: 2 };
+    points[1] = { player: 2, pawns: 3 };
+    points[0] = { player: 2, pawns: 2 };
     
     
     let bar = Array(2).fill( {pawns: 0 })
@@ -271,12 +282,16 @@ class App extends Component {
       
       positions: points,
       newGame: true,
-      currentPlayer: 1,
+      currentPlayer: 2,
       dice: [],
       remainingMoves: [],
       bar
     },  () => {
-      this.onThrowDice(4, 1);
+      this.checkPlayerIsBearingOff(2);
+      this.onThrowDice(4, 1, () => {
+        console.log("_test_checkBlackIsBearingOff");
+        
+      });
     });
   }
 
@@ -356,6 +371,36 @@ class App extends Component {
 
   }
 
+  
+  _test_black_wins = () => {
+    let points = Array(24).fill({player: 0, pawns: 0});
+    points[5] = { player: 2, pawns: 1 };
+    
+    points[19] = { player: 1, pawns: 1 };
+    points[20] = { player: 1, pawns: 4 };
+    points[21] = { player: 1, pawns: 2 };
+    points[23] = { player: 1, pawns: 5 };
+
+    let bar = Array(2).fill( {pawns: 0 })
+
+    this.setState({
+      
+      positions: points,
+      newGame: true,
+      currentPlayer: 2,
+      dice: [],
+      remainingMoves: [],
+      bar
+    },  () => {
+      this.checkPlayerIsBearingOff(2);
+      this.onThrowDice(6, 2, () => {
+       
+      });
+    });
+
+  }
+
+
   startNewGameHandler = () => {
     
     let points = Array(24).fill({player: 0, pawns: 0});
@@ -411,6 +456,8 @@ class App extends Component {
 
   onThrowDice = (...args) => {
     let dice = [];
+    let dice1 = args.length >= 2 ? args[0] : Math.ceil(Math.random()*6);
+    let dice2 = args.length >= 2 ? args[1] : Math.ceil(Math.random()*6);
     dice.push(dice1);
     dice.push(dice2);
     // Add double moves if the numbers are the same
@@ -486,14 +533,13 @@ class App extends Component {
     destinationIndex = destinationIndex - 1;
 
     let usedDiceToMove = Math.abs(destinationIndex - this.state.movingCheckerIndex);
-
-    if(this.state.movingCheckerIndex) {
+    let index = this.state.movingCheckerIndex;
+      
+    if(this.state.movingCheckerIndex !== false) {
       this.setState({
         movingCheckerIndex: false
       });
 
-      let index = this.state.movingCheckerIndex;
-      
       let playerDidMakeMove = false;
       // Check if the current player clicked on pawn AND if there are moves available
       let currentPlayer = this.state.currentPlayer;
@@ -526,7 +572,7 @@ class App extends Component {
           const boardIndexKeys = Object.keys(this.state.remainingMoves).map((item) => { return Number(item);});
 
           let move = boardIndexKeys.find(x => x === actualIndex);
-          if(move) {
+          if(move !== false) {
             playerDidMakeMove = true;
            
            // let destIndex = currentPlayer === 1 ? actualIndex + move.diceNbr : actualIndex - move.diceNbr;
@@ -552,17 +598,19 @@ class App extends Component {
 
               // Check if a piece was hit
               let destField = copiedBoard[destinationIndex];
-              if(destField.pawns === 1 && destField.player !== currentPlayer) {
-                // Piece was hit
-                copiedBar[destField.player-1].pawns++;
-                destField.pawns = 1;
-                destField.player = currentPlayer;
-                
-              } else {
-                destField.pawns = copiedBoard[destinationIndex].pawns + 1;
-                if(copiedBoard[destinationIndex].pawns > 0) {
-                  console.log("update the current player");
-                  copiedBoard[destinationIndex].player = currentPlayer;
+              if(destField != undefined) {
+                if(destField.pawns === 1 && destField.player !== currentPlayer) {
+                  // Piece was hit
+                  copiedBar[destField.player-1].pawns++;
+                  destField.pawns = 1;
+                  destField.player = currentPlayer;
+                  
+                } else {
+                  destField.pawns = copiedBoard[destinationIndex].pawns + 1;
+                  if(copiedBoard[destinationIndex].pawns > 0) {
+                    console.log("update the current player");
+                    copiedBoard[destinationIndex].player = currentPlayer;
+                  }
                 }
               }
             }
@@ -638,133 +686,132 @@ class App extends Component {
     //  return { moves: item.moves };
     //});
 
-  // White moves up, Black moves down
-  const info = {
-    whiteMoves: this.state.currentPlayer === 1,
-    lastFieldNumber: this.state.currentPlayer === 2 ? 25 : -1
-  }
-  // const whiteMoves = this.state.currentPlayer === 1;
-  // const endFieldWhite = 24;
+    // White moves up, Black moves down
+    const info = {
+      whiteMoves: this.state.currentPlayer === 1,
+      lastFieldNumber: this.state.currentPlayer === 2 ? 24 : -1
+    }
+    // const whiteMoves = this.state.currentPlayer === 1;
+    // const endFieldWhite = 24;
 
-  const numberOfDice = this.state.dice.length;
-  for(let diceIndex = 0; diceIndex < numberOfDice; diceIndex++) {
-    // First check for bar
-    if(this.state.bar[this.state.currentPlayer-1].pawns > 0) {
-      // Has to move with that piece
-      let index = info.lastFieldNumber;//whiteMoves ? -1 : 24;
-      
-      const diceNbr = diceIndex < this.state.dice.length ? this.state.dice[diceIndex] : undefined;
-      const destIndex = info.whiteMoves ? index + diceNbr : index - diceNbr;
-      console.log("destIndex: " + destIndex);
-      const destField = this.state.positions[destIndex];
-      if(destIndex >= 0 &&  destIndex < 24) {
-        // check if opponent was hit
-
-        if(destField.pawns === 1 && destField.player !== this.state.currentPlayer) {
-          console.log("HIT OPPONENT PIECE: " + destIndex);
-          let arrayCopy = JSON.parse(JSON.stringify(possibleMoves)); 
-          let movesCopy = arrayCopy[diceNbr-1].dice;
-          movesCopy.push(index);
-          Object.assign(possibleMoves, arrayCopy);
-          
-        } else if(destField.pawns > 1 && destField.player !== this.state.currentPlayer) {
-          // check if opponent has two or more pieces on it
-          console.log("FIELD ALREADY OCCUPIED BY OPPONENT: " + destIndex);
-        } else {
-         
-          let arrayCopy = JSON.parse(JSON.stringify(possibleMoves)); 
-          let movesCopy = arrayCopy[diceNbr-1].dice;
-          movesCopy.push(index);
-          Object.assign(possibleMoves, arrayCopy);
-        }
-      }
-    } else {
-
-      // Now check for all other possible moves
-      const diceNbr = diceIndex < this.state.dice.length ? this.state.dice[diceIndex] : undefined;
-      //const diceNbr = availableMoves[0];
-      for(let [index, currentField] of this.state.positions.entries()) {
-        if(this.state.currentPlayer === currentField.player && currentField.pawns > 0) {
-          const destIndex = info.whiteMoves ? index + diceNbr : index - diceNbr;
-          const destField = this.state.positions[destIndex];
-          if((info.whiteMoves && this.state.whiteIsBearingOff) || (!info.whiteMoves && this.state.blackIsBearingOff)) {
-            // bearing off correct checker
-            if(destIndex === 24 || destIndex === -1) {
-              let arrayCopy = JSON.parse(JSON.stringify(possibleMoves)); 
-             let movesCopy = arrayCopy[diceNbr-1].dice;
-             movesCopy.push(index);
-             Object.assign(possibleMoves, arrayCopy);
-            }
-          }
-          else if(destIndex >= 0 &&  destIndex < 24) {
-            // check if opponent was hit
-            if(destField.pawns === 1 && destField.player !== this.state.currentPlayer) {
-              console.log("HIT OPPONENT PIECE: " + destIndex);
-              let arrayCopy = JSON.parse(JSON.stringify(possibleMoves)); 
-              let movesCopy = arrayCopy[diceNbr-1].dice;
-              movesCopy.push(index);
-              Object.assign(possibleMoves, arrayCopy);
-          
-            } else if(destField.pawns > 1 && destField.player !== this.state.currentPlayer) {
-              // check if opponent has two or more pieces on it
-              console.log("FIELD ALREADY OCCUPIED BY OPPONENT: " + destIndex);
-            } else {
-              if(possibleMoves[index] !== undefined) {
-                possibleMoves[index].push(diceNbr);
-                //let arrayCopy = JSON.parse(JSON.stringify(possibleMoves)); 
-                //let movesCopy = [];
-              } else {
-                possibleMoves[index] = [];
-                possibleMoves[index].push(diceNbr);
-              }
-             
-             //Object.assign(movesCopy, arrayCopy.dice);
-             //movesCopy.push(diceNbr);
-             //let movesCopy = arrayCopy[diceNbr-1].dice;
-             //movesCopy.push(index);
-             //Object.assign(possibleMoves, arrayCopy);
-            }
-          }
-        }
-      }
-
-      
-      // TODO: should I maybe move this to be called in a separate function before calling getPossibleMoves?
-      // I don't think I can, because the player could just want to move up his pieces instead bearing off
-
-      // Check for bearing off checker that doesn't have an exact match
-      if(info.whiteMoves && this.state.whiteIsBearingOff) {
+    const numberOfDice = this.state.dice.length;
+    for(let diceIndex = 0; diceIndex < numberOfDice; diceIndex++) {
+      // First check for bar
+      if(this.state.bar[this.state.currentPlayer-1].pawns > 0) {
+        // Has to move with that piece
+        let index = info.lastFieldNumber;//whiteMoves ? -1 : 24;
         
-        // 1. Check the last checker and see if he can bear off
-          for(let index = 18; index < 24; index++) {
+        const diceNbr = diceIndex < this.state.dice.length ? this.state.dice[diceIndex] : undefined;
+        const destIndex = info.whiteMoves ? index + diceNbr : index - diceNbr;
+        console.log("destIndex: " + destIndex);
+        const destField = this.state.positions[destIndex];
+        if(destIndex >= 0 &&  destIndex < 24) {
+          // check if opponent was hit
+
+          if(destField.pawns === 1 && destField.player !== this.state.currentPlayer) {
+            console.log("HIT OPPONENT PIECE: " + destIndex);
+            this.addPossibleMove(possibleMoves, index, diceNbr);
+            
+          } else if(destField.pawns > 1 && destField.player !== this.state.currentPlayer) {
+            // check if opponent has two or more pieces on it
+            console.log("FIELD ALREADY OCCUPIED BY OPPONENT: " + destIndex);
+          } else {
+            // Regular move from bar to empty field
+            //let movesCopy = _.cloneDeep(possibleMoves);
+            this.addPossibleMove(possibleMoves, index, diceNbr);
+          }
+        }
+      } else {
+
+        // Now check for all other possible moves
+        const diceNbr = diceIndex < this.state.dice.length ? this.state.dice[diceIndex] : undefined;
+        //const diceNbr = availableMoves[0];
+        for(let [index, currentField] of this.state.positions.entries()) {
+          if(this.state.currentPlayer === currentField.player && currentField.pawns > 0) {
+            const destIndex = info.whiteMoves ? index + diceNbr : index - diceNbr;
+            const destField = this.state.positions[destIndex];
+
+            if((info.whiteMoves && this.state.whiteIsBearingOff) || (!info.whiteMoves && this.state.blackIsBearingOff)) {
+              // TODO: bearing off correct checker: https://www.gammonsite.com/bgrules.aspx#:~:text=To%20bear%20off%20one%20man,checker%20from%20the%205%20point.
+
+              // Find either the correct die to bear off or allow to bear off the farthest checker. f.e. checker on 
+              // 5 but not on 6: if user rolls a 6, the 5 can bear off.
+              if(destIndex === 24 || destIndex === -1) {
+                this.addPossibleMove(possibleMoves, index, diceNbr);
+              } else if(destIndex > 24 || destIndex < -1) {
+                if(this.state.blackIsBearingOff) {
+                  let canBearOff = true;
+                  for(let i = index+1; i<6; i++) {
+                    if(this.state.positions[i].pawns > 0 && this.state.positions[i].player === BLACK_PLAYER) {
+                      // Found a checker that is farther away: Only the farthest checker can bear off
+                      canBearOff = false;
+                      break;
+                    }
+                }
+                  if(canBearOff) {
+                    this.addPossibleMove(possibleMoves, index, diceNbr);
+                  }
+                }
+              }
+            }
+            if(destIndex >= 0 &&  destIndex < 24) {
+              // check if opponent was hit
+              if(destField.pawns === 1 && destField.player !== this.state.currentPlayer) {
+                console.log("HIT OPPONENT PIECE: " + destIndex);
+                this.addPossibleMove(possibleMoves, index, diceNbr);
+            
+              } else if(destField.pawns > 1 && destField.player !== this.state.currentPlayer) {
+                // check if opponent has two or more pieces on it
+                console.log("FIELD ALREADY OCCUPIED BY OPPONENT: " + destIndex);
+              } else {
+                this.addPossibleMove(possibleMoves, index, diceNbr);
+              }
+            }
+        }
+
+        
+        // TODO: should I maybe move this to be called in a separate function before calling getPossibleMoves?
+        // I don't think I can, because the player could just want to move up his pieces instead bearing off
+
+        // Check for bearing off checker that doesn't have an exact match
+        /*
+        if(info.whiteMoves && this.state.whiteIsBearingOff) {
+          
+          // 1. Check the last checker and see if he can bear off
+            for(let index = 18; index < 24; index++) {
+              if(this.state.positions[index].player === this.state.currentPlayer && this.state.positions[index].pawns > 0) {
+                const destIndex = index + diceNbr;
+                if(destIndex >= 24) {
+                  this.addPossibleMove(possibleMoves, index, diceNbr);
+                  break;
+                }
+              }
+            }
+        } else if(!info.whiteMoves && this.state.blackIsBearingOff) {
+          for(let index = 5; index >= 0; index--) {
             if(this.state.positions[index].player === this.state.currentPlayer && this.state.positions[index].pawns > 0) {
-              const destIndex = index + diceNbr;
-              if(destIndex >= 24) {
-                let arrayCopy = JSON.parse(JSON.stringify(possibleMoves)); 
-                let movesCopy = arrayCopy[diceNbr-1].dice;
-                movesCopy.push(index);
-                Object.assign(possibleMoves, arrayCopy);
+              const destIndex = index - diceNbr;
+              if(destIndex < 0) {
+                this.addPossibleMove(possibleMoves, index, diceNbr);
                 break;
               }
             }
           }
-      } else if(!info.whiteMoves && this.state.blackIsBearingOff) {
-        for(let index = 5; index >= 0; index--) {
-          if(this.state.positions[index].player === this.state.currentPlayer && this.state.positions[index].pawns > 0) {
-            const destIndex = index - diceNbr;
-            if(destIndex < 0) {
-              let arrayCopy = JSON.parse(JSON.stringify(possibleMoves)); 
-              let movesCopy = arrayCopy[diceNbr-1].dice;
-              movesCopy.push(index);
-              Object.assign(possibleMoves, arrayCopy);
-              break;
-            }
-          }
         }
+        */
       }
     }
+   }
+  return possibleMoves;
   }
 
+  addPossibleMove = (possibleMoves, index, diceNbr) => {
+    if(possibleMoves[index] !== undefined) {
+      possibleMoves[index].push(diceNbr);
+    } else {
+      possibleMoves[index] = [];
+      possibleMoves[index].push(diceNbr);
+    }
     return possibleMoves;
   }
 
@@ -792,7 +839,7 @@ class App extends Component {
           }
         }
       }
-      if(count === 15) {
+      if(count <= 15) {
         //alert("Player: " + player + " can start bearing off");
         this.setState((state, props) => ({
           whiteIsBearingOff: (state.currentPlayer===1 ? true: false),
@@ -804,44 +851,11 @@ class App extends Component {
 
   render() {
   
-   
-
     let canRollDice = false;
     if(this.state.remainingMoves.length === 0 && this.state.newGame) {
       canRollDice = true;
     }
 
-    /*
-    const possibleMoveIndexArray = Object.keys(this.state.remainingMoves);
-    //const possibleMoveIndexArray = Object.keys(this.state.remainingMoves);
-    console.log("this.state.remainingMoves: " + this.state.remainingMoves);
-    
-    let possibleMoves = [];
-
-    // First mark the possible pawns that can move. Then if the user clicked one, 
-    // mark the destination fields.
-    if(this.state.movingCheckerIndex === true) {
-      console.log("User picked pawn to make the move");
-      const possibleMovesNumbers = possibleMoveIndexArray.map((item) => {
-        return Number(item);
-      });
-      possibleMoves = possibleMovesNumbers.map((key) => {
-        return this.state.remainingMoves[key].map((dice) => {
-          return key + dice;
-        });
-
-      });
-    }else {
-      possibleMoves = possibleMoveIndexArray.map((item) => {
-        return Number(item);
-      });
-    }
-    
-    //const test = possibleMoveIndexArray.map((item) => {
-     // return Number(item);
-    //});
-
-    */
     let test = null;
     if(this.state.movingCheckerIndex === false) {
       test = this.onPieceSelectedHandler;
@@ -849,14 +863,32 @@ class App extends Component {
       test = this.onPieceMovedToHandler;
     }
 
+    let nbrOfWhiteCheckersOffBoard = 0;
+    let nbrOfBlackCheckersOffBoard = 0;
+    if(this.state.newGame) {
+      let copiedBoard = [...this.state.positions];
+  
+      // count all pieces in white's home and check if all of them are there
+      for(let index = 0; index < copiedBoard.length; index++) {
+        if(copiedBoard[index].player === WHITE_PLAYER) {
+          nbrOfWhiteCheckersOffBoard += copiedBoard[index].pawns;
+        } else if(copiedBoard[index].player === BLACK_PLAYER) {
+          nbrOfBlackCheckersOffBoard += copiedBoard[index].pawns;
+        }
+      }
+
+      nbrOfBlackCheckersOffBoard = (15 - nbrOfBlackCheckersOffBoard);
+      nbrOfWhiteCheckersOffBoard = (15 - nbrOfWhiteCheckersOffBoard);
+    }
+
     return (
       <Layout>
           <button onClick={this.startNewGameHandler}>New Game</button>
-          <button onClick={this._test_BlackOnBar}>TEST BUG</button>
+          <button onClick={this._test_black_wins}>TEST BUG</button>
         <Board 
         pawnPositions={this.state.positions} 
         throwDice={this.onThrowDice} 
-        pieceMoved={test/*onPieceSelectedHandler*/} // TODO: rename to pieceSelected
+        pieceMoved={test} // TODO: rename to pieceSelected
         roll1={this.state.dice[0]}  
         roll2={this.state.dice[1]} 
         roll={this.state.dice}
@@ -864,14 +896,17 @@ class App extends Component {
         disabled={!canRollDice}
         color={this.state.currentPlayer === 1 ? "White" : "Black"}
         bar={this.state.bar}
-        possibleMoves={this.state.remainingMoves/*possibleMoves*/}
-        movingCheckerIndex={this.state.movingCheckerIndex}/>
+        possibleMoves={this.state.remainingMoves}
+        movingCheckerIndex={this.state.movingCheckerIndex}
+        checkersAtHome={{ 
+          whiteCheckers: nbrOfWhiteCheckersOffBoard,
+          blackCheckers: nbrOfBlackCheckersOffBoard
+        }}
+        />
         
         </Layout>
       );
-      
     }
-
 
     componentDidMount() {
       const IS_TESTING = false;
@@ -886,6 +921,7 @@ class App extends Component {
         //this._test_NoMoreMoves();
       }
     }
+    
 }
 
 export default App;

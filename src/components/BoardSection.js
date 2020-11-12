@@ -34,12 +34,8 @@ const boardSection = (props) => {
     }
 
     function getDestinationFields(currentIndex, color) {
-            // TODO: right now props.possibleMoves returns the wrong length even though the values are correct.
-            // When I'm done using deepCopy in getPossibleMoves(), it should work.
-        // const copyA = [...props.possibleMoves];
         let possibleMoves = [];
-        //if(props.movingCheckerIndex === currentIndex) { 
-        if(props.movingCheckerIndex != false) {
+        if(props.movingCheckerIndex !== false) {
             let destMoves = props.possibleMoves[props.movingCheckerIndex];
             possibleMoves = destMoves.map((dice) => {
                 if(props.currentPlayer === "Black") {
@@ -47,26 +43,7 @@ const boardSection = (props) => {
                 } else {
                     return parseInt(props.movingCheckerIndex) + dice + 1;
                 }
-            })
-            /*
-            const possibleMoveIndexArray = Object.keys(props.possibleMoves);
-            console.log("this.state.remainingMoves: " + props.possibleMoves);
-            const possibleMovesNumbers = possibleMoveIndexArray.map((item) => {
-                return Number(item);
             });
-            
-            for(let index in props.possibleMoves) {
-                possibleMoves = possibleMoves.concat(props.possibleMoves[index].map((dice) => {
-                    return parseInt(index) + dice;
-                }));
-                
-            // possibleMovesNumbers.map((key) => {
-            //     return props.possibleMoves[key].map((dice) => {
-            //         return key + dice;
-            //     });
-            // });
-            }
-            */
         }
         return possibleMoves;
     }
@@ -90,7 +67,7 @@ const boardSection = (props) => {
 
             let canMovePawn = false;
             const checkMoves = getSelectableFields();
-            if(checkMoves/*props.possibleMoves*/.indexOf(index) !== -1) {
+            if(checkMoves.indexOf(index) !== -1) {
                 canMovePawn = true;
             }
             for(let i=0;i<nbr; i++) {
