@@ -3,6 +3,10 @@ import './App.css';
 import Board from './components/Board';
 import Layout from './Layout/Layout';
 import _ from "lodash";
+import Aux from "./hoc/Auxx"
+import Modal from "./components/UI/Modal/Modal"
+import WinningDialog from "./components/WinningDialog/WinningDialog"
+import Button from './components/UI/Button/Button'
 
 const WHITE_HOME_INDEX = -1;
 const BLACK_HOME_INDEX = 24;
@@ -19,8 +23,8 @@ class App extends Component {
     newDiceIndex: 0,
     remainingMoves: {},
     bar: Array(2).fill( {pawns: 0 }),
-    movingCheckerIndex: false
-
+    movingCheckerIndex: false,
+    winningPlayer: false
   }
 
 
@@ -465,6 +469,9 @@ class App extends Component {
       dice.push(dice1);
       dice.push(dice1);
     }
+
+    this.checkPlayerIsBearingOff(this.state.currentPlayer);
+
     //console.log("Throw dice for player: " + this.state.currentPlayer + ": " + dice1 + ", " + dice2);
     this.setState({
       dice: dice
@@ -630,29 +637,37 @@ class App extends Component {
               //  this.setState({dice: newDice})
               // if(newDice.length == 0) {
                 this.checkPlayerIsBearingOff(currentPlayer);
-                this.setState((prevState, props) => ({
-                  dice: newDice
-                }), () => {
-                  if(this.state.dice.length === 0) {
-                    console.log("no more moves available: switch the player");
-                    this.setState((state, props) => ({
-                      currentPlayer: (state.currentPlayer===1 ? 2: 1),
-                      remainingMoves: []  
-                    }));
-                  } else {
-                    console.log("After the move: update the remainingMoves to exclude the one I just did");
-                    this.setState({
-                      movingCheckerIndex: false
-                    }, () => {
-                      console.log("after resetting movingcheckerIndex to false, calculate new possible moves");
-                      this.executeMoves();
-                    });
-                    //console.assert(false, "What should I do now? Remove all other moves for that dice");
-                   // this.executeMoves();
-                  }
-                });
+                let winner = this.checkPlayerWon(currentPlayer);
+                if(winner === false) {
+                  this.setState((prevState, props) => ({
+                    dice: newDice
+                  }), () => {
+                    if(this.state.dice.length === 0) {
+                      console.log("no more moves available: switch the player");
+                      this.setState((state, props) => ({
+                        currentPlayer: (state.currentPlayer===1 ? 2: 1),
+                        remainingMoves: []  
+                      }));
+                    } else {
+                      console.log("After the move: update the remainingMoves to exclude the one I just did");
+                      this.setState({
+                        movingCheckerIndex: false
+                      }, () => {
+                        console.log("after resetting movingcheckerIndex to false, calculate new possible moves");
+                        this.executeMoves();
+                      });
+                      //console.assert(false, "What should I do now? Remove all other moves for that dice");
+                    // this.executeMoves();
+                    }
+                  });
+                } else {
+                  this.setState({
+                    newGame: false,
+                    showWinnerDialog: winner
+                  });
                 }
-              });
+              }
+            });
           }
 
           if(this.state.remainingMoves.length === 0 && this.state.dice.length > 0) {
@@ -821,7 +836,48 @@ class App extends Component {
   checkPlayerIsBearingOff = ( player ) => {
 
     let copiedBoard = [...this.state.positions];
-    
+/*
+    let countWhite = 0;
+    let countBlack = 0;
+
+    for(let index = 0; index < copiedBoard.length; index++) {
+      if(copiedBoard[index].player === WHITE_PLAYER) {
+        countWhite += copiedBoard[index].pawns;
+      } else if(copiedBoard[index].player === BLACK_PLAYER) {
+        countBlack += copiedBoard[index].pawns;
+      }
+    }
+
+    if(player === WHITE_PLAYER && countWhite) {
+
+    }
+    */
+  let foundPlayer = false;
+
+  // if white player, no white checkers should be outside of white's home (19-24) 
+  if(player === WHITE_PLAYER) {
+    for(let index = 0; index < 19; index++) {
+      if(copiedBoard[index].player === player) {
+        foundPlayer = true;
+        break;
+      }
+    }
+  }
+  else if(player === BLACK_PLAYER) {
+    for(let index = 6; index < 24; index++) {
+      if(copiedBoard[index].player === player) {
+        foundPlayer = true;
+        break;
+      }
+    }
+  }
+
+  this.setState((state, props) => ({
+    whiteIsBearingOff: (foundPlayer === false && player === WHITE_PLAYER ? true : false ),
+    blackIsBearingOff: (foundPlayer === false && player === BLACK_PLAYER ? true: false)
+  }));
+  
+  /*
     if(this.state.currentPlayer === player) {
       let count = 0;
       if(player === 1) {
@@ -847,6 +903,27 @@ class App extends Component {
         }));
       }
     }
+    */
+  }
+
+  checkPlayerWon = (player) => {
+    
+    for(let index = 0; index < this.state.positions.length; index++) {
+      if(this.state.positions[index].player === player) {
+        return false;
+      }
+    }
+    this.setState({
+      winningPlayer: player
+    });
+    return player;
+  }
+
+  gameOver = () => {
+    console.log("game over");
+    this.setState({
+      showWinnerDialog: false
+    });
   }
 
   render() {
@@ -881,31 +958,40 @@ class App extends Component {
       nbrOfWhiteCheckersOffBoard = (15 - nbrOfWhiteCheckersOffBoard);
     }
 
+    let test2 = true;
+
     return (
-      <Layout>
-          <button onClick={this.startNewGameHandler}>New Game</button>
-          <button onClick={this._test_black_wins}>TEST BUG</button>
-        <Board 
-        pawnPositions={this.state.positions} 
-        throwDice={this.onThrowDice} 
-        pieceMoved={test} // TODO: rename to pieceSelected
-        roll1={this.state.dice[0]}  
-        roll2={this.state.dice[1]} 
-        roll={this.state.dice}
-        diceActiveIndex={this.state.newDiceIndex}
-        disabled={!canRollDice}
-        color={this.state.currentPlayer === 1 ? "White" : "Black"}
-        bar={this.state.bar}
-        possibleMoves={this.state.remainingMoves}
-        movingCheckerIndex={this.state.movingCheckerIndex}
-        checkersAtHome={{ 
-          whiteCheckers: nbrOfWhiteCheckersOffBoard,
-          blackCheckers: nbrOfBlackCheckersOffBoard
-        }}
-        />
-        
-        </Layout>
-      );
+      <Aux>
+        <Modal show={this.state.showWinnerDialog} modalClosed={this.purchaseCancelHandler}>
+          <WinningDialog 
+            winner={this.state.showWinnerDialog} clicked={this.gameOver}/>
+        </Modal>
+        <Layout>
+            <Button clicked={this.startNewGameHandler} buttonType="Start">New Game</Button>
+            <button onClick={this._test_checkWhiteIsBearingOff}>TEST BUG</button>
+          <Board 
+          pawnPositions={this.state.positions} 
+          throwDice={this.onThrowDice} 
+          pieceMoved={test} // TODO: rename to pieceSelected
+          roll1={this.state.dice[0]}  
+          roll2={this.state.dice[1]} 
+          roll={this.state.dice}
+          diceActiveIndex={this.state.newDiceIndex}
+          disabled={!canRollDice}
+          color={this.state.currentPlayer === 1 ? "White" : "Black"}
+          bar={this.state.bar}
+          possibleMoves={this.state.remainingMoves}
+          movingCheckerIndex={this.state.movingCheckerIndex}
+          checkersAtHome={{ 
+            whiteCheckers: nbrOfWhiteCheckersOffBoard,
+            blackCheckers: nbrOfBlackCheckersOffBoard
+          }}
+          />
+          
+          </Layout>
+        </Aux>
+        );
+      
     }
 
     componentDidMount() {

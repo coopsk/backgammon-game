@@ -1,29 +1,35 @@
 .DiceButton {
-    background-color: #DAD735;
+    
+    background-image: linear-gradient(#7474BF, #348AC7);
     outline: none;
     cursor: pointer;
-    border: 1px solid #966909;
-    color: #966909;
+    border: 1px solid #2c2c2a;
+    color: black;
     font-family: inherit;
     font-size: 1.2em;
     padding: 5px 30px;
-    box-shadow: 2px 2px 2px #966909;
-    border-radius: 5px;
+    box-shadow: 2px 2px 2px #24222298;
+    border-radius: 10px;
     margin: 4px;
 }
 
 
-.DiceButton:hover, .DiceButton:active {
+.DiceButton:hover:enabled, .DiceButton:active {
+    
+    /*
     background-color: #A0DB41;
     border: 1px solid #966909;
     color: #966909;
+    */
+    box-shadow: -3px -3px 3px 0px rgba(32, 53, 112, 0.5) inset, 2px 2px 5px 5px rgba(29, 65, 141, 0.062) inset;
+    
 }
 
 .DiceButton:disabled {
-    background-color: #C7C6C6;
-    cursor: not-allowed;
+    background-image: linear-gradient(#a19f9f, #757272);
+    cursor: auto;
     border: 1px solid #ccc;
-    color: #888888;
+    color: #575252;
 }
 .DiceButton:not(:disabled) {
     animation: enable 0.3s linear;

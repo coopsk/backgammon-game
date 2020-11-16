@@ -1,0 +1,46 @@
+.Button {
+    /*background-color: transparent;*/
+    border: solid 1px gray;
+    border-radius: 10px;
+    color: white;
+    outline: none;
+    cursor: pointer;
+    font: inherit;
+    padding: 10px;
+    margin: 10px;
+    font-weight: bold;
+}
+/*
+.Button:first-of-type {
+    margin-left: 0;
+    padding-left: 0;
+}
+*/
+
+.Start {
+    color: darkslategrey;
+    background-image: linear-gradient(to right, #f6d365 0%, #fdab85 51%, #f6d365 100%);
+    /*box-shadow: -1px -1px 0px 0px rgba(0, 0, 0, 0.5) inset, 2px 2px 5px 5px rgba(255, 255, 255, 0.0) inset;*/
+    
+}
+.Start:hover {
+    box-shadow: -3px -3px 3px 0px rgba(112, 44, 32, 0.5) inset, 2px 2px 5px 5px rgba(228, 38, 38, 0.062) inset;
+    
+    /*background-position: right center;*/ /* change the direction of the change here */
+  }
+
+.Continue {
+    color: #5C9210;
+    float: right;
+    box-shadow: -1px -1px 0px 0px rgba(0, 0, 0, 0.5) inset, 2px 2px 5px 5px rgba(255, 255, 255, 0.0) inset;
+    
+}
+
+.Continue:hover {
+    box-shadow: -3px -3px 3px 0px rgba(0, 0, 0, 0.5) inset, 2px 2px 5px 5px rgba(255, 255, 255, 0.0) inset;
+    
+}
+
+.Cancel {
+    color: #944317;
+}

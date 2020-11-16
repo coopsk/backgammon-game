@@ -21,13 +21,13 @@ const rollDiceButton = (props) => {
         diceText = props.roll1 + ", " + props.roll1 + ", " + props.roll1 + ", " + props.roll1;
     }
 
-    const diceText2 = Object.keys( props.roll )
+    const dice = Object.keys( props.roll )
         .map( igKey => {
-            //console.log("igKey: " + igKey + ", dice Index: " + props.diceActiveIndex);
+            // TODO: remove diceActiveIndex. It's not used anymore
             if(igKey === props.diceActiveIndex)
-                return <p style={{fontSize: '50px', display: 'inline', paddingRight: '10px'}} key={igKey}>{props.roll[igKey]}</p>
+                return <p style={{fontSize: '50px', display: 'inline', paddingRight: '15px'}} key={igKey}>{props.roll[igKey]}</p>
             else
-                return <p style={{fontSize: '35px', display: 'inline', paddingRight: '10px', color: 'gray'}} key={igKey}>{props.roll[igKey]}</p>
+                return <p style={{fontSize: '35px', display: 'inline', paddingRight: '15px', color: 'white'}} key={igKey}>{props.roll[igKey]}</p>
             
         } );
 
@@ -37,7 +37,9 @@ const rollDiceButton = (props) => {
             className={classes.DiceButton} 
             onClick={props.onClick}
             disabled={props.disabled}>{labelText}</button>
-        {diceText2}
+        <div style={{margin: '15px'}}>
+        {dice}
+        </div>
         </Aux>
     )
 }
