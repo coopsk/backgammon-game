@@ -14,7 +14,7 @@ const bearoffPanel = (props) => {
         const checkerArray = [];
         let size = props.outerBoardInfo.checkersAtHome.whiteCheckers;
         for(let i=0; i<size; i++) {
-            checkerArray.push(<CheckerOffBoard color={"White"} />);
+            checkerArray.push(<CheckerOffBoard key={i} color={"White"} />);
         }
         return checkerArray;
     };

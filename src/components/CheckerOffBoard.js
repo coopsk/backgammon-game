@@ -8,7 +8,7 @@ const checkerOffBoard = (props) => {
     
     return (
         <Aux>
-        <div class={allClasses} />
+        <div className={allClasses} />
         {props.children}
         </Aux>
         )

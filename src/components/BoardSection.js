@@ -35,7 +35,7 @@ const boardSection = (props) => {
 
     function getDestinationFields(currentIndex, color) {
         let possibleMoves = [];
-        if(props.movingCheckerIndex !== false) {
+        if(props.movingCheckerIndex !== false && Object.keys(props.possibleMoves).length !== 0) {
             let destMoves = props.possibleMoves[props.movingCheckerIndex];
             possibleMoves = destMoves.map((dice) => {
                 if(props.currentPlayer === "Black") {

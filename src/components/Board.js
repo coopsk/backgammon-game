@@ -40,7 +40,7 @@ class Board extends Component {
 
         // GetPossibleMove doesn't return the correct thing for movingCheckerIndex = 3 (the 4th checker). It only considers the die 1 but not 4
         let possibleMoves1 = [];
-        if(this.props.movingCheckerIndex !== false) {
+        if(this.props.movingCheckerIndex !== false && Object.keys(this.props.possibleMoves).length !== 0) {
             let destMoves = this.props.possibleMoves[this.props.movingCheckerIndex];
             possibleMoves1 = destMoves.map((dice) => {
                 if(this.props.color === "Black") {

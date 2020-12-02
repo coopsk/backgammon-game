@@ -12,6 +12,8 @@ const WHITE_HOME_INDEX = -1;
 const BLACK_HOME_INDEX = 24;
 const WHITE_PLAYER = 1;
 const BLACK_PLAYER = 2;
+const WHITE_FIRST_HOME_FIELD_INDEX = 18; // The 19th field is the first home field
+const BLACK_FIRST_HOME_FIELD_INDEX = 5; // The 5th field is the first home field
 
 class App extends Component {
 
@@ -228,6 +230,9 @@ class App extends Component {
 
   }
 
+  // Test that moving the last pawn into white's home
+  // should now mark white as being able to bear off.
+  // The last move, a 1, could now be moved off the board.
   _test_checkWhiteIsBearingOff = () => {
     let points = Array(24).fill({player: 0, pawns: 0});
     points[14] = { player: 1, pawns: 1 };
@@ -235,7 +240,6 @@ class App extends Component {
     points[19] = { player: 1, pawns: 1 };
     points[20] = { player: 1, pawns: 4 };
     points[21] = { player: 1, pawns: 2 };
-    //points[22] = { player: 1, pawns: 0 };
     points[23] = { player: 1, pawns: 5 };
     
     // black pawns
@@ -255,10 +259,17 @@ class App extends Component {
       currentPlayer: 1,
       dice: [],
       remainingMoves: [],
-      bar
+      bar,
+      movingCheckerIndex: 14
     },  () => {
-      this.checkPlayerIsBearingOff(1);
-      this.onThrowDice(4, 1);
+      //this.checkPlayerIsBearingOff(1);
+      this.onThrowDice(4, 1, () => {
+        //this.onPieceSelectedHandler()
+        this.onPieceMovedToHandler(19);
+      });
+      console.log("_test_checkWhiteIsBearingOff");
+     // console.assert(this.state.dice.length === 2, "Expected 2 dice, but " + this.state.dice.length + " found");
+     // console.assert(this.state.remainingMoves.length === 0, "Expected 0 remaining moves, but " + this.state.remainingMoves.length + " found");
     });
 
   }
@@ -470,14 +481,14 @@ class App extends Component {
       dice.push(dice1);
     }
 
-    this.checkPlayerIsBearingOff(this.state.currentPlayer);
+    // k.c this.checkPlayerIsBearingOff(this.state.currentPlayer);
 
     //console.log("Throw dice for player: " + this.state.currentPlayer + ": " + dice1 + ", " + dice2);
     this.setState({
       dice: dice
     }, () => {
        //console.log("testing dice after setState: " + this.state.dice[0]);
-       this.executeMoves(0, args.length === 3 ? args[2] : null);
+       this.executeMoves(args.length === 3 ? args[2] : null);
      });
   }
 
@@ -485,26 +496,34 @@ class App extends Component {
 
     if(this.state.dice.length > 0)
     {
-      // Check if there are any possible moves with currentMove for currentPlayer
-      const remainingMoves = this.getPossibleMoves();
-      this.setState({
-        remainingMoves: remainingMoves
-      }, () => {
-        if(this.state.remainingMoves.length === 0) {
       
-          console.log("no more moves available: switch the player");
-          this.setState((state, props) => ({
-            currentPlayer: (state.currentPlayer===1 ? 2: 1),
-            remainingMoves: []
-          }), () => {
-            if(calculateMoveFinished) {
-              calculateMoveFinished();
-            }
-          });
-        }
-        if(calculateMoveFinished) {
-          calculateMoveFinished();
-        }
+      let bearingOff = this.checkPlayerIsBearingOff(this.state.currentPlayer);
+      this.setState((state, props) => ({
+        whiteIsBearingOff: bearingOff.whiteIsBearingOff,
+        blackIsBearingOff: bearingOff.blackIsBearingOff
+      }), () => {
+
+        // Check if there are any possible moves with currentMove for currentPlayer
+        const remainingMoves = this.getPossibleMoves();
+        this.setState({
+          remainingMoves: remainingMoves
+        }, () => {
+          if(this.state.remainingMoves.length === 0) {
+        
+            console.log("no more moves available: switch the player");
+            this.setState((state, props) => ({
+              currentPlayer: (state.currentPlayer===1 ? 2: 1),
+              remainingMoves: []
+            }), () => {
+              if(calculateMoveFinished) {
+                calculateMoveFinished();
+              }
+            });
+          }
+          if(calculateMoveFinished) {
+            calculateMoveFinished();
+          }
+        });
       });
     }
   }
@@ -636,7 +655,7 @@ class App extends Component {
                 //newDice.shift();
               //  this.setState({dice: newDice})
               // if(newDice.length == 0) {
-                this.checkPlayerIsBearingOff(currentPlayer);
+    // k.c            this.checkPlayerIsBearingOff(currentPlayer);
                 let winner = this.checkPlayerWon(currentPlayer);
                 if(winner === false) {
                   this.setState((prevState, props) => ({
@@ -835,48 +854,32 @@ class App extends Component {
    */
   checkPlayerIsBearingOff = ( player ) => {
 
+    let result = {};
     let copiedBoard = [...this.state.positions];
-/*
-    let countWhite = 0;
-    let countBlack = 0;
+    let foundPlayer = false;
 
-    for(let index = 0; index < copiedBoard.length; index++) {
-      if(copiedBoard[index].player === WHITE_PLAYER) {
-        countWhite += copiedBoard[index].pawns;
-      } else if(copiedBoard[index].player === BLACK_PLAYER) {
-        countBlack += copiedBoard[index].pawns;
+    // if white player, no white checkers should be outside of white's home (19-24) 
+    if(player === WHITE_PLAYER) {
+      for(let index = 0; index < WHITE_FIRST_HOME_FIELD_INDEX; index++) {
+        if(copiedBoard[index].player === player) {
+          foundPlayer = true;
+          break;
+        }
+      }
+    }
+    // if black player, no black checkers should be outside of black's home (1-6) 
+    else if(player === BLACK_PLAYER) {
+      for(let index = BLACK_FIRST_HOME_FIELD_INDEX+1; index < 24; index++) {
+        if(copiedBoard[index].player === player) {
+          foundPlayer = true;
+          break;
+        }
       }
     }
 
-    if(player === WHITE_PLAYER && countWhite) {
-
-    }
-    */
-  let foundPlayer = false;
-
-  // if white player, no white checkers should be outside of white's home (19-24) 
-  if(player === WHITE_PLAYER) {
-    for(let index = 0; index < 19; index++) {
-      if(copiedBoard[index].player === player) {
-        foundPlayer = true;
-        break;
-      }
-    }
-  }
-  else if(player === BLACK_PLAYER) {
-    for(let index = 6; index < 24; index++) {
-      if(copiedBoard[index].player === player) {
-        foundPlayer = true;
-        break;
-      }
-    }
-  }
-
-  this.setState((state, props) => ({
-    whiteIsBearingOff: (foundPlayer === false && player === WHITE_PLAYER ? true : false ),
-    blackIsBearingOff: (foundPlayer === false && player === BLACK_PLAYER ? true: false)
-  }));
-  
+    result.whiteIsBearingOff = (foundPlayer === false && player === WHITE_PLAYER ? true : false );
+    result.blackIsBearingOff = (foundPlayer === false && player === BLACK_PLAYER ? true: false);
+    return result;
   /*
     if(this.state.currentPlayer === player) {
       let count = 0;
