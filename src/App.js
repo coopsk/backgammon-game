@@ -49,9 +49,12 @@ class App extends Component {
     
     let points = Array(24).fill({player: 0, pawns: 0});
     points[0] = { player: 1, pawns: 1 };
+    points[2] = { player: 1, pawns: 9 };
     points[5] = { player: 2, pawns: 5 };
+   
     points[7] = { player: 2, pawns: 3 };
     points[12] = { player: 2, pawns: 5 };
+    points[19] = { player: 1, pawns: 5 };
     points[23] = { player: 2, pawns: 2 };
    
     this.setState({
@@ -957,8 +960,8 @@ class App extends Component {
         }
       }
 
-      nbrOfBlackCheckersOffBoard = (15 - nbrOfBlackCheckersOffBoard);
-      nbrOfWhiteCheckersOffBoard = (15 - nbrOfWhiteCheckersOffBoard);
+      nbrOfBlackCheckersOffBoard = ((15 - this.state.bar[1].pawns) - nbrOfBlackCheckersOffBoard);
+      nbrOfWhiteCheckersOffBoard = ((15 - this.state.bar[0].pawns) - nbrOfWhiteCheckersOffBoard);
     }
 
     let test2 = true;
@@ -971,7 +974,7 @@ class App extends Component {
         </Modal>
         <Layout>
             <Button clicked={this.startNewGameHandler} buttonType="Start">New Game</Button>
-            <button onClick={this._test_checkWhiteIsBearingOff}>TEST BUG</button>
+            <button onClick={this._test_BlackPutsWhiteOnBarWith3}>TEST BUG</button>
           <Board 
           pawnPositions={this.state.positions} 
           throwDice={this.onThrowDice} 
@@ -998,13 +1001,13 @@ class App extends Component {
     }
 
     componentDidMount() {
-      const IS_TESTING = false;
+      const IS_TESTING = true;
       if(IS_TESTING) {
         console.log("the component did mount");
-    //    this._test_NoMoreMoves();
+        this._test_NoMoreMoves();
     //    this._test_bearOffWhite();
     //    this._test_bearOffWhite2();
-        this._test_BlackOnBar();
+    //    this._test_BlackOnBar();
         //this._test_NoMoreMoves();
         //this._test_NoMoreMoves();
         //this._test_NoMoreMoves();
