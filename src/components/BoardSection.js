@@ -39,9 +39,11 @@ const boardSection = (props) => {
             let destMoves = props.possibleMoves[props.movingCheckerIndex];
             possibleMoves = destMoves.map((dice) => {
                 if(props.currentPlayer === "Black") {
-                    return parseInt(props.movingCheckerIndex) - dice + 1;
+                    let destIndex = Math.max(parseInt(props.movingCheckerIndex) - dice + 1, 0);
+                    return destIndex;
                 } else {
-                    return parseInt(props.movingCheckerIndex) + dice + 1;
+                    let destIndex = Math.min(parseInt(props.movingCheckerIndex) + dice + 1, 25);
+                    return destIndex;
                 }
             });
         }

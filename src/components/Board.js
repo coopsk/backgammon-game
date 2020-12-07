@@ -44,9 +44,11 @@ class Board extends Component {
             let destMoves = this.props.possibleMoves[this.props.movingCheckerIndex];
             possibleMoves1 = destMoves.map((dice) => {
                 if(this.props.color === "Black") {
-                    return parseInt(this.props.movingCheckerIndex) - dice + 1;
+                    let destIndex = Math.max(parseInt(this.props.movingCheckerIndex) - dice + 1, 0);
+                    return destIndex;
                 } else {
-                    return parseInt(this.props.movingCheckerIndex) + dice + 1;
+                    let destIndex = Math.min(parseInt(this.props.movingCheckerIndex) + dice + 1, 25);
+                    return destIndex;
                 }
             });
         }

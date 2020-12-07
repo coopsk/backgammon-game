@@ -63,13 +63,13 @@ class App extends Component {
       newGame: true,
       currentPlayer: 1,
       dice: [],
-      remainingMoves: [],
+      remainingMoves: {},
       bar: Array(2).fill( {pawns: 0 })
    }, () => {
     this.onThrowDice(5, 5, () => {
       console.log("_test_NoMoreMoves");
       console.assert(this.state.dice.length === 4, "Expected 4 dice, but " + this.state.dice.length + " found");
-      console.assert(this.state.remainingMoves.length === 0, "Expected 0 remaining moves, but " + this.state.remainingMoves.length + " found");
+      console.assert(Object.keys(this.state.remainingMoves).length === 0, "Expected 0 remaining moves, but " + Object.keys(this.state.remainingMoves).length + " found");
     });
    });
   }
@@ -78,7 +78,7 @@ class App extends Component {
   _test_BlackOnBar = () => {
     
     let points = Array(24).fill({player: 0, pawns: 0});
-    points[0] = { player: 1, pawns: 1 };
+    points[0] = { player: 1, pawns: 2 };
     points[5] = { player: 2, pawns: 4 };
     points[7] = { player: 2, pawns: 3 };
     points[11] = { player: 1, pawns: 5 };
@@ -96,13 +96,14 @@ class App extends Component {
       newGame: true,
       currentPlayer: 2,
       dice: [],
-      remainingMoves: [],
+      remainingMoves: {},
       bar
    }, () => {
     this.onThrowDice(5, 2, () => {
       console.log("_test_BlackOnBar");
       console.assert(this.state.dice.length === 2, "Expected 2 dice, but " + this.state.dice.length + " found");
-      console.assert(this.state.remainingMoves.length === 0, "Expected 0 remaining moves, but " + this.state.remainingMoves.length + " found");
+      // Black can move from bar with 2 and 5
+      console.assert(Object.keys(this.state.remainingMoves).length === 1, "Expected 1 remaining moves, but " + Object.keys(this.state.remainingMoves).length + " found");
     });
    });
   }
@@ -110,7 +111,6 @@ class App extends Component {
   _test_WhiteOnBarCantMoveFirstDice = () => {
     
     let points = Array(24).fill({player: 0, pawns: 0});
-    console.log("startNewGameHandler");
     points[0] = { player: 2, pawns: 1 };
     points[1] = { player: 2, pawns: 2 };
     points[3] = { player: 2, pawns: 1 };
@@ -120,7 +120,7 @@ class App extends Component {
     points[11] = { player: 1, pawns: 4 };
     points[12] = { player: 2, pawns: 5 };
     points[15] = { player: 2, pawns: 2 };
-    points[19] = { player: 1, pawns: 1 };
+    points[19] = { player: 1, pawns: 2 };
     points[21] = { player: 1, pawns: 1 };
     points[22] = { player: 1, pawns: 6 };
     points[23] = { player: 1, pawns: 1 };
@@ -134,10 +134,13 @@ class App extends Component {
       newGame: true,
       currentPlayer: 1,
       dice: [],
-      remainingMoves: [],
+      remainingMoves: {},
       bar
    }, () => {
-    this.onThrowDice(2, 3);
+    this.onThrowDice(2, 3, () => {
+      console.log("_test_WhiteOnBarCantMoveFirstDice");
+      console.assert(Object.keys(this.state.remainingMoves).length === 1, "Expected 1 remaining moves, but " + Object.keys(this.state.remainingMoves).length + " found");
+    });
    });
   }
 
@@ -145,7 +148,6 @@ class App extends Component {
     
     
     let points = Array(24).fill({player: 0, pawns: 0});
-    console.log("startNewGameHandler");
     points[0] = { player: 1, pawns: 1 };
     points[2] = { player: 1, pawns: 1 };
     points[5] = { player: 2, pawns: 5 };
@@ -162,17 +164,23 @@ class App extends Component {
       newGame: true,
       currentPlayer: 2,
       dice: [],
-      remainingMoves: [],
+      remainingMoves: {},
+      movingCheckerIndex: 5,
       bar: Array(2).fill( {pawns: 0 })
    }, () => {
-    this.onThrowDice(3, 1);
+    console.log("_test_BlackPutsWhiteOnBarWith3");
+
+    this.onThrowDice(3, 1, () => {
+      this.onPieceMovedToHandler(3, () => {
+        console.assert(this.state.bar[0].pawns === 1, "Expected 1 pawn on the bar, but " + this.state.bar[0].pawns + " found");
+      });
+    });
    });
   } 
 
-  _test_WhiteAtEnd = () => {
+  _test_InitialBoardWhiteCanMoveAllPawns = () => {
     
     let points = Array(24).fill({player: 0, pawns: 0});
-    console.log("startNewGameHandler");
     points[0] = { player: 1, pawns: 2 };
     points[5] = { player: 2, pawns: 5 };
     points[7] = { player: 2, pawns: 3 };
@@ -181,8 +189,6 @@ class App extends Component {
     points[16] = { player: 1, pawns: 3 };
     points[18] = { player: 1, pawns: 5 };
     points[23] = { player: 2, pawns: 2 };
-    
-    
     let bar = Array(2).fill( {pawns: 0 })
    
     this.setState({
@@ -191,18 +197,21 @@ class App extends Component {
       newGame: true,
       currentPlayer: 1,
       dice: [],
-      remainingMoves: [],
+      remainingMoves: {},
       bar
     },  () => {
-      console.log("testing bar after setState: " + this.state.bar[0].pawns);
-      this.onThrowDice(6, 4);
+      console.log("_test_InitialBoardWhiteCanMoveAllPawns");
+      this.onThrowDice(6, 4, () => {
+        console.assert(Object.keys(this.state.remainingMoves).length === 4, "Expected 4 remaining moves, but " + Object.keys(this.state.remainingMoves).length + " found");
+        console.assert(this.state.bar[0].pawns === 0, "Expected 0 pawn on the bar, but " + this.state.bar[0].pawns + " found");
+        console.assert(this.state.bar[1].pawns === 0, "Expected 0 pawn on the bar, but " + this.state.bar[1].pawns + " found");
+      });
     });
   }
 
   _test_WhiteOnBar = () => {
     
     let points = Array(24).fill({player: 0, pawns: 0});
-    console.log("startNewGameHandler");
     points[0] = { player: 1, pawns: 1 };
     points[5] = { player: 2, pawns: 5 };
     points[7] = { player: 2, pawns: 3 };
@@ -227,10 +236,17 @@ class App extends Component {
       remainingMoves: [],
       bar
     },  () => {
-      console.log("testing bar after setState: " + this.state.bar[0].pawns);
-      this.onThrowDice(4, 4);
+      console.log("_test_WhiteOnBar");
+      this.onThrowDice(4, 4, () => {
+        console.assert(Object.keys(this.state.remainingMoves).length === 1, "Expected 1 remaining moves, but " + Object.keys(this.state.remainingMoves).length + " found");
+        console.assert(this.state.bar[0].pawns === 1, "Expected 1 pawn on the bar, but " + this.state.bar[0].pawns + " found");
+        console.assert(this.state.bar[1].pawns === 0, "Expected 0 pawn on the bar, but " + this.state.bar[1].pawns + " found");
+        this.onPieceMovedToHandler(4, () => {
+          console.assert(this.state.bar[0].pawns === 0, "Expected 0 pawn on the bar, but " + this.state.bar[0].pawns + " found");
+          console.assert(this.state.bar[1].pawns === 0, "Expected 0 pawn on the bar, but " + this.state.bar[1].pawns + " found");
+        });
+      });
     });
-
   }
 
   // Test that moving the last pawn into white's home
@@ -261,18 +277,28 @@ class App extends Component {
       newGame: true,
       currentPlayer: 1,
       dice: [],
-      remainingMoves: [],
+      remainingMoves: {},
       bar,
       movingCheckerIndex: 14
     },  () => {
-      //this.checkPlayerIsBearingOff(1);
-      this.onThrowDice(4, 1, () => {
-        //this.onPieceSelectedHandler()
-        this.onPieceMovedToHandler(19);
-      });
       console.log("_test_checkWhiteIsBearingOff");
-     // console.assert(this.state.dice.length === 2, "Expected 2 dice, but " + this.state.dice.length + " found");
-     // console.assert(this.state.remainingMoves.length === 0, "Expected 0 remaining moves, but " + this.state.remainingMoves.length + " found");
+      this.onThrowDice(4, 1, () => {
+        // white is not bearing off yet
+        console.assert(this.state.whiteIsBearingOff === false, "Expected whiteIsBearingOff is false, but " + this.state.whiteIsBearingOff + " found");
+        console.assert(this.state.blackIsBearingOff === false, "Expected blackIsBearingOff is false, but " + this.state.blackIsBearingOff + " found");
+        console.assert(this.state.dice.length === 2, "Expected 2 dice, but " + this.state.dice.length + " found");
+        console.assert(Object.keys(this.state.remainingMoves).length === 5, "Expected 5 remaining moves, but " + Object.keys(this.state.remainingMoves).length + " found");
+
+        this.onPieceMovedToHandler(19, () => {
+          console.log("_test_checkWhiteIsBearingOff: after moving last white into home");
+          console.assert(this.state.whiteIsBearingOff === true, "Expected whiteIsBearingOff is true, but " + this.state.whiteIsBearingOff + " found");
+          console.assert(this.state.blackIsBearingOff === false, "Expected blackIsBearingOff is false, but " + this.state.blackIsBearingOff + " found");
+          console.assert(this.state.dice.length === 1, "Expected 1 dice, but " + this.state.dice.length + " found");
+          // All pawns are in the home base and could possibly move 1
+          console.assert(Object.keys(this.state.remainingMoves).length === 5, "Expected 5 remaining moves, but " + Object.keys(this.state.remainingMoves).length + " found");
+        });
+      });
+     
     });
 
   }
@@ -302,13 +328,17 @@ class App extends Component {
       newGame: true,
       currentPlayer: 2,
       dice: [],
-      remainingMoves: [],
+      remainingMoves: {},
       bar
     },  () => {
       this.checkPlayerIsBearingOff(2);
+      console.log("_test_checkBlackIsBearingOff");
+      
       this.onThrowDice(4, 1, () => {
-        console.log("_test_checkBlackIsBearingOff");
-        
+        console.assert(this.state.whiteIsBearingOff === false, "Expected whiteIsBearingOff is false, but " + this.state.whiteIsBearingOff + " found");
+        console.assert(this.state.blackIsBearingOff === true, "Expected blackIsBearingOff is true, but " + this.state.blackIsBearingOff + " found");
+        console.assert(this.state.dice.length === 2, "Expected 2 dice, but " + this.state.dice.length + " found");
+        console.assert(Object.keys(this.state.remainingMoves).length === 6, "Expected 6 remaining moves, but " + Object.keys(this.state.remainingMoves).length + " found");
       });
     });
   }
@@ -337,15 +367,32 @@ class App extends Component {
       newGame: true,
       currentPlayer: 1,
       dice: [],
-      remainingMoves: [],
+      remainingMoves: {},
       bar
     },  () => {
-      this.checkPlayerIsBearingOff(1);
+      console.log("_test_bearOffWhite");
       this.onThrowDice(5, 1, () => {
-        console.log("_test_bearOffWhite");
         console.assert(this.state.dice.length === 2, "Expected 2 dice, but " + this.state.dice.length + " found");
-        console.assert(this.state.remainingMoves.length === 2, "Expected 2 remaining moves, but " + this.state.remainingMoves.length + " found");
+        console.assert(Object.keys(this.state.remainingMoves).length === 5, "Expected 5 remaining moves, but " + Object.keys(this.state.remainingMoves).length + " found");
         console.assert(this.state.whiteIsBearingOff === true, "Expected whiteIsBearingOff to be true, but " + this.state.whiteIsBearingOff + " found");
+        this.setState({
+          movingCheckerIndex: 19
+        }, () => {
+          this.onPieceMovedToHandler(25, () => {
+            // still 5 remaining moves for dice #1
+            console.assert(Object.keys(this.state.remainingMoves).length === 5, "Expected 5 remaining moves, but " + Object.keys(this.state.remainingMoves).length + " found");
+            // count all white pieces: should only be 14 since one is already out 
+            let copiedBoard = [...this.state.positions];
+            let countWhite = 0;
+            for(let index = 0; index < BLACK_HOME_INDEX; index++) {
+              if(copiedBoard[index].player === WHITE_PLAYER) {
+                countWhite += copiedBoard[index].pawns;
+              }
+            }
+            console.assert(this.state.dice.length === 1, "Expected 1 dice, but " + this.state.dice.length + " found");
+            console.assert(countWhite === 14, "Expected 14, but " + countWhite + " found");
+          });
+        });
       });
     });
 
@@ -375,14 +422,13 @@ class App extends Component {
       newGame: true,
       currentPlayer: 1,
       dice: [],
-      remainingMoves: [],
+      remainingMoves: {},
       bar
     },  () => {
-      this.checkPlayerIsBearingOff(1);
       this.onThrowDice(6, 6, () => {
         console.log("_test_bearOffWhite2");
         console.assert(this.state.dice.length === 4, "Expected 4 dice, but " + this.state.dice.length + " found");
-        console.assert(this.state.remainingMoves.length === 2, "Expected 2 remaining moves, but " + this.state.remainingMoves.length + " found");
+        console.assert(Object.keys(this.state.remainingMoves).length === 1, "Expected 1 remaining moves, but " + Object.keys(this.state.remainingMoves).length + " found");
         console.assert(this.state.whiteIsBearingOff === true, "Expected whiteIsBearingOff to be true, but " + this.state.whiteIsBearingOff + " found");
       });
     });
@@ -407,18 +453,165 @@ class App extends Component {
       newGame: true,
       currentPlayer: 2,
       dice: [],
-      remainingMoves: [],
+      remainingMoves: {},
       bar
     },  () => {
-      this.checkPlayerIsBearingOff(2);
+      console.log("_test_black_wins");
       this.onThrowDice(6, 2, () => {
-       
+        console.assert(this.state.dice.length === 2, "Expected 2 dice, but " + this.state.dice.length + " found");
+        console.assert(Object.keys(this.state.remainingMoves).length === 1, "Expected 1 remaining moves, but " + Object.keys(this.state.remainingMoves).length + " found");
+        console.assert(this.state.whiteIsBearingOff === false, "Expected whiteIsBearingOff to be false, but " + this.state.whiteIsBearingOff + " found");
+        console.assert(this.state.blackIsBearingOff === true, "Expected blackIsBearingOff to be true, but " + this.state.blackIsBearingOff + " found");
+        this.setState({
+          movingCheckerIndex: 5
+        }, () => {
+          this.onPieceMovedToHandler(0, () => {
+            console.assert(this.state.blackIsBearingOff === true, "Expected blackIsBearingOff to be true, but " + this.state.blackIsBearingOff + " found");
+          });
+        });
       });
     });
-
   }
 
 
+  _test_bearingOff_Without_Exact_Dice_Black = () => {
+    
+    let points = Array(24).fill({player: 0, pawns: 0});
+    points[4] = { player: 2, pawns: 2 };
+    points[3] = { player: 2, pawns: 1 };
+
+    points[19] = { player: 1, pawns: 1 };
+    points[20] = { player: 1, pawns: 4 };
+    points[21] = { player: 1, pawns: 2 };
+    points[23] = { player: 1, pawns: 5 };
+   
+    this.setState({
+      
+      positions: points,
+      newGame: true,
+      currentPlayer: 2,
+      dice: [],
+      remainingMoves: {},
+      bar: Array(2).fill( {pawns: 0 })
+   }, () => {
+    console.log("_test_bearingOff_Without_Exact_Dice_Black");
+    this.onThrowDice(6, 6, () => {
+      // Can only move with the 5 pawn
+      console.assert(Object.keys(this.state.remainingMoves).length === 1, "Expected 1 remaining moves, but " + Object.keys(this.state.remainingMoves).length + " found");
+      this.setState({
+        movingCheckerIndex: 4
+      }, () => {
+        this.onPieceMovedToHandler(0, () => {
+          console.assert(this.state.blackIsBearingOff === true, "Expected blackIsBearingOff to be true, but " + this.state.blackIsBearingOff + " found");
+          // verify that only 2 black pawns remain:
+          let countBlack = this.countBlackPawns();
+            console.assert(countBlack === 2, "Expected 2 pawns on the board, but " + countBlack + " found");
+        });
+      });
+    });
+   });
+  } 
+
+  _test_bearingOff_Without_Exact_Dice_White = () => {
+    
+    let points = Array(24).fill({player: 0, pawns: 0});
+    points[4] = { player: 2, pawns: 2 };
+    points[3] = { player: 2, pawns: 1 };
+
+    points[19] = { player: 1, pawns: 1 };
+    points[20] = { player: 1, pawns: 4 };
+    points[21] = { player: 1, pawns: 2 };
+    points[23] = { player: 1, pawns: 5 };
+   
+    this.setState({
+      
+      positions: points,
+      newGame: true,
+      currentPlayer: 1,
+      dice: [],
+      remainingMoves: {},
+      bar: Array(2).fill( {pawns: 0 })
+   }, () => {
+    console.log("_test_bearingOff_Without_Exact_Dice_White");
+    this.onThrowDice(6, 6, () => {
+      // Can only move with the 5 pawn
+      console.assert(Object.keys(this.state.remainingMoves).length === 1, "Expected 1 remaining moves, but " + Object.keys(this.state.remainingMoves).length + " found");
+      
+      this.setState({
+        movingCheckerIndex: 19
+      }, () => {
+        this.onPieceMovedToHandler(25, () => {
+          console.assert(this.state.whiteIsBearingOff === true, "Expected whiteIsBearingOff to be true, but " + this.state.whiteIsBearingOff + " found");
+          let countWhite = this.countWhitePawns();
+          console.assert(countWhite === 11, "Expected 11 pawns on the board, but " + countWhite + " found");
+          console.assert(this.state.dice.length === 3, "Expected 3 dice, but " + this.state.dice.length + " found");
+        });
+      });
+      
+    });
+   });
+  } 
+
+  _test_bearingOff_Without_Exact_Dice_White2 = () => {
+    let points = Array(24).fill({player: 0, pawns: 0});
+    points[4] = { player: 2, pawns: 2 };
+    points[3] = { player: 2, pawns: 1 };
+
+    points[20] = { player: 1, pawns: 4 };
+    points[21] = { player: 1, pawns: 2 };
+    points[23] = { player: 1, pawns: 5 };
+  
+    this.setState({
+      
+      positions: points,
+      newGame: true,
+      currentPlayer: 1,
+      dice: [],
+      remainingMoves: {},
+      bar: Array(2).fill( {pawns: 0 })
+    }, () => {
+      this.onThrowDice(6, 5, () => {
+        console.log("_test_bearingOff_Without_Exact_Dice_White2");
+        console.assert(Object.keys(this.state.remainingMoves).length === 1, "Expected 1 remaining moves, but " + Object.keys(this.state.remainingMoves).length + " found");
+        let countWhite = this.countWhitePawns();
+        console.assert(countWhite === 11, "Expected 11 pawns on the board, but " + countWhite + " found");
+
+        this.setState({
+          movingCheckerIndex: 20
+        }, () => {
+          this.onPieceMovedToHandler(25, () => {
+            console.assert(this.state.whiteIsBearingOff === true, "Expected whiteIsBearingOff to be true, but " + this.state.whiteIsBearingOff + " found");
+            let countWhite = this.countWhitePawns();
+            console.assert(countWhite === 10, "Expected 10 pawns on the board, but " + countWhite + " found");
+            console.assert(this.state.dice.length === 1, "Expected 1 dice, but " + this.state.dice.length + " found");
+          });
+        });
+
+      });
+    });
+  }
+
+  countWhitePawns = () => {
+    let copiedBoard = [...this.state.positions];
+    let countWhite = 0;
+    for(let index = 0; index < BLACK_HOME_INDEX; index++) {
+      if(copiedBoard[index].player === WHITE_PLAYER) {
+        countWhite += copiedBoard[index].pawns;
+      }
+    }
+    return countWhite;
+  }
+  
+  countBlackPawns = () => {
+    let copiedBoard = [...this.state.positions];
+    let countBlack = 0;
+    for(let index = 0; index < BLACK_HOME_INDEX; index++) {
+      if(copiedBoard[index].player === BLACK_PLAYER) {
+        countBlack += copiedBoard[index].pawns;
+      }
+    }
+    return countBlack;
+  }
   startNewGameHandler = () => {
     
     let points = Array(24).fill({player: 0, pawns: 0});
@@ -438,7 +631,7 @@ class App extends Component {
       newGame: true,
       currentPlayer: 1,
       dice: [],
-      remainingMoves: [],
+      remainingMoves: {},
       bar: Array(2).fill( {pawns: 0 }),
       whiteIsBearingOff: false,
       blackIsBearingOff: false
@@ -449,26 +642,23 @@ class App extends Component {
     
     
     let points = Array(24).fill({player: 0, pawns: 0});
-    console.log("startNewGameHandler");
-    points[0] = { player: 1, pawns: 2 };
-    points[5] = { player: 2, pawns: 5 };
-    points[7] = { player: 2, pawns: 3 };
-    points[11] = { player: 1, pawns: 5 };
-    points[12] = { player: 2, pawns: 5 };
-    points[16] = { player: 1, pawns: 3 };
-    points[18] = { player: 1, pawns: 5 };
-    points[23] = { player: 2, pawns: 2 };
+    points[4] = { player: 2, pawns: 2 };
+    points[3] = { player: 2, pawns: 1 };
+
+    points[20] = { player: 1, pawns: 4 };
+    points[21] = { player: 1, pawns: 2 };
+    points[23] = { player: 1, pawns: 5 };
    
     this.setState({
       
       positions: points,
       newGame: true,
-      currentPlayer: 2,
+      currentPlayer: 1,
       dice: [],
-      remainingMoves: [],
+      remainingMoves: {},
       bar: Array(2).fill( {pawns: 0 })
    }, () => {
-    this.onThrowDice(4, 1);
+    this.onThrowDice(6, 5);
    });
   } 
 
@@ -511,7 +701,7 @@ class App extends Component {
         this.setState({
           remainingMoves: remainingMoves
         }, () => {
-          if(this.state.remainingMoves.length === 0) {
+          if(Object.keys(this.state.remainingMoves).length === 0) {
         
             console.log("no more moves available: switch the player");
             this.setState((state, props) => ({
@@ -557,7 +747,7 @@ class App extends Component {
   }
 
   // This is called if a pawn was clicked (through Pawn.js). Now the available target moves will be highlighted.
-  onPieceMovedToHandler = (destinationIndex) => {
+  onPieceMovedToHandler = (destinationIndex, onMoveFinishedHandler) => {
     
     destinationIndex = destinationIndex - 1;
 
@@ -654,7 +844,23 @@ class App extends Component {
                 const diceIndex = newDice.indexOf(usedDiceToMove);
                 if(diceIndex != -1) {
                   newDice.splice(diceIndex, 1);
-                } 
+                } else if(newDice.length > 0) {
+                  // The exact dice couldn't be found. Find closest match if bearing off 
+                  // F.e. white's farthest pawn is on 21, needs a 4 to bear off, but dice are 5 and 6: use the 5 for that move.
+                  console.assert(this.state.whiteIsBearingOff || this.state.blackIsBearingOff, "White or black must be bearing off: couldn't find exact match");
+                  newDice.sort((a,b) => a-b);
+                  console.log("New dice: " + newDice);
+                  let dice = newDice[0];
+                  for(let i=1; i<newDice.length; i++) {
+                    if(dice < usedDiceToMove) {
+                      dice = newDice[i];
+                    } else {
+                      break;
+                    }
+                  }
+                  // now remove the dice that was just big enough to bear off the pawn
+                  newDice.splice(newDice.indexOf(dice), 1);
+                }
                 //newDice.shift();
               //  this.setState({dice: newDice})
               // if(newDice.length == 0) {
@@ -668,7 +874,7 @@ class App extends Component {
                       console.log("no more moves available: switch the player");
                       this.setState((state, props) => ({
                         currentPlayer: (state.currentPlayer===1 ? 2: 1),
-                        remainingMoves: []  
+                        remainingMoves: {} 
                       }));
                     } else {
                       console.log("After the move: update the remainingMoves to exclude the one I just did");
@@ -676,23 +882,25 @@ class App extends Component {
                         movingCheckerIndex: false
                       }, () => {
                         console.log("after resetting movingcheckerIndex to false, calculate new possible moves");
-                        this.executeMoves();
+                        this.executeMoves(onMoveFinishedHandler);
                       });
-                      //console.assert(false, "What should I do now? Remove all other moves for that dice");
-                    // this.executeMoves();
                     }
                   });
                 } else {
                   this.setState({
                     newGame: false,
                     showWinnerDialog: winner
+                  }, () => {
+                    // just for testing conditions after a player won:
+                    if(onMoveFinishedHandler !== undefined)
+                      onMoveFinishedHandler();
                   });
                 }
               }
             });
           }
 
-          if(this.state.remainingMoves.length === 0 && this.state.dice.length > 0) {
+          if(Object.keys(this.state.remainingMoves).length === 0 && this.state.dice.length > 0) {
             console.log("player can't move");
           }
           /*
@@ -769,22 +977,30 @@ class App extends Component {
             const destField = this.state.positions[destIndex];
 
             if((info.whiteMoves && this.state.whiteIsBearingOff) || (!info.whiteMoves && this.state.blackIsBearingOff)) {
-              // TODO: bearing off correct checker: https://www.gammonsite.com/bgrules.aspx#:~:text=To%20bear%20off%20one%20man,checker%20from%20the%205%20point.
-
-              // Find either the correct die to bear off or allow to bear off the farthest checker. f.e. checker on 
-              // 5 but not on 6: if user rolls a 6, the 5 can bear off.
               if(destIndex === 24 || destIndex === -1) {
                 this.addPossibleMove(possibleMoves, index, diceNbr);
               } else if(destIndex > 24 || destIndex < -1) {
                 if(this.state.blackIsBearingOff) {
                   let canBearOff = true;
-                  for(let i = index+1; i<6; i++) {
+                  for(let i = index+1; i<= BLACK_FIRST_HOME_FIELD_INDEX; i++) {
                     if(this.state.positions[i].pawns > 0 && this.state.positions[i].player === BLACK_PLAYER) {
                       // Found a checker that is farther away: Only the farthest checker can bear off
                       canBearOff = false;
                       break;
                     }
-                }
+                  }
+                  if(canBearOff) {
+                    this.addPossibleMove(possibleMoves, index, diceNbr);
+                  }
+                } else if(this.state.whiteIsBearingOff) {
+                  let canBearOff = true;
+                  for(let i = index-1; i >= WHITE_FIRST_HOME_FIELD_INDEX; i--) {
+                    if(this.state.positions[i].pawns > 0 && this.state.positions[i].player === WHITE_PLAYER) {
+                      // Found a checker that is farther away: Only the farthest checker can bear off
+                      canBearOff = false;
+                      break;
+                    }
+                  }
                   if(canBearOff) {
                     this.addPossibleMove(possibleMoves, index, diceNbr);
                   }
@@ -932,10 +1148,14 @@ class App extends Component {
     });
   }
 
+  onBoardClicked = () => {
+    console.log("########## onBoardClicked");
+  }
+
   render() {
   
     let canRollDice = false;
-    if(this.state.remainingMoves.length === 0 && this.state.newGame) {
+    if(Object.keys(this.state.remainingMoves).length === 0 && this.state.newGame) {
       canRollDice = true;
     }
 
@@ -974,8 +1194,9 @@ class App extends Component {
         </Modal>
         <Layout>
             <Button clicked={this.startNewGameHandler} buttonType="Start">New Game</Button>
-            <button onClick={this._test_BlackPutsWhiteOnBarWith3}>TEST BUG</button>
+            <button onClick={this._test_bug}>TEST BUG</button>
           <Board 
+          clicked={this.onBoardClicked}
           pawnPositions={this.state.positions} 
           throwDice={this.onThrowDice} 
           pieceMoved={test} // TODO: rename to pieceSelected
@@ -1001,16 +1222,23 @@ class App extends Component {
     }
 
     componentDidMount() {
-      const IS_TESTING = true;
+      const IS_TESTING = false;
       if(IS_TESTING) {
         console.log("the component did mount");
-        this._test_NoMoreMoves();
-    //    this._test_bearOffWhite();
-    //    this._test_bearOffWhite2();
-    //    this._test_BlackOnBar();
-        //this._test_NoMoreMoves();
-        //this._test_NoMoreMoves();
-        //this._test_NoMoreMoves();
+    //    this._test_NoMoreMoves(); // 7. dec 2020 works
+    //    this._test_BlackOnBar();    // 7. dec 2020 works
+    //    this._test_WhiteOnBar(); // 7. dec 2020 works
+    //    this._test_WhiteOnBarCantMoveFirstDice(); // 7. dec 2020 works
+    //    this._test_BlackPutsWhiteOnBarWith3(); // 7. dec 2020 works
+    //    this._test_InitialBoardWhiteCanMoveAllPawns(); // 7. dec 2020 works
+    //    this._test_checkWhiteIsBearingOff(); // 7. dec 2020 works
+    //    this._test_checkBlackIsBearingOff(); // 7. dec 2020 works
+    //    this._test_bearOffWhite(); // 7. dec 2020 works
+    //    this._test_bearOffWhite2(); // 7. dec 2020 works
+    //    this._test_black_wins(); // 7. dec 2020 works
+    //    this._test_bearingOff_Without_Exact_Dice_Black(); // 7. dec 2020 works
+    //    this._test_bearingOff_Without_Exact_Dice_White(); // 7. dec 2020 works
+    //    this._test_bearingOff_Without_Exact_Dice_White2(); // 7. dec 2020 works
       }
     }
     
