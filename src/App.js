@@ -755,10 +755,7 @@ class App extends Component {
     let index = this.state.movingCheckerIndex;
       
     if(this.state.movingCheckerIndex !== false) {
-      this.setState({
-        movingCheckerIndex: false
-      });
-
+     
       let playerDidMakeMove = false;
       // Check if the current player clicked on pawn AND if there are moves available
       let currentPlayer = this.state.currentPlayer;
@@ -1149,7 +1146,12 @@ class App extends Component {
   }
 
   onBoardClicked = () => {
-    console.log("########## onBoardClicked");
+    // unselect the target field if the user clicked anywhere on the board
+    if(this.state.movingCheckerIndex !== false) {
+      this.setState({
+        movingCheckerIndex: false
+      });
+    }
   }
 
   render() {

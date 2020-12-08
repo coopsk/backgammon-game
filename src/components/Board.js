@@ -60,7 +60,7 @@ class Board extends Component {
         };
 
         return (
-            <div className={classes.Board}>
+            <div className={classes.Board} onClick={this.props.clicked}>
                 <div className={classes.LeftPanel} >
                     {upperLeftPanel} 
                     <div className={classes.Spacer}></div>  
