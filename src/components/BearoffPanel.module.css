@@ -11,16 +11,16 @@
 }
 
 .Test {
-    background-color: #42320f;
-    box-shadow: -5px -5px 10px 2px rgba(0, 0, 0, 0.5) inset, 5px 5px 5px 5px rgba(255, 255, 255, 0.0) inset;
+    background-color: #94bfce;
+    box-shadow: -5px -5px 10px 2px rgba(48, 85, 111, 0.5) inset, 5px 5px 5px 5px rgba(255, 255, 255, 0.0) inset;
     height: 50%;
     border-top: solid 1px lightblue;
     border-radius: 5px;
 }
 
 .Test2 {
-    background-color: #42320f;
-    box-shadow: -5px -5px 10px 2px rgba(0, 0, 0, 0.5) inset, 5px 5px 5px 5px rgba(255, 255, 255, 0.0) inset;
+    background-color: #94bfce;
+    box-shadow: -5px -5px 10px 2px rgba(48, 85, 111, 0.5) inset, 5px 5px 5px 5px rgba(255, 255, 255, 0.0) inset;
     height: 50%;
     border-bottom: solid 1px lightblue;
     border-radius: 5px;

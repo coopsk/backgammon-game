@@ -1,6 +1,7 @@
 .Bar {
-    background-color: #42320f;
+    background-color: #94bfce;
     display: flex;
     width: 100%;
     height: inherit;
+    box-shadow: inset 0px -20px 20px -2px rgba(48,85,111,.75);
 }

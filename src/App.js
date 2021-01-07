@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useEffect, useRef } from 'react';
 import './App.css';
 import Board from './components/Board';
 import Layout from './Layout/Layout';
@@ -7,6 +7,9 @@ import Aux from "./hoc/Auxx"
 import Modal from "./components/UI/Modal/Modal"
 import WinningDialog from "./components/WinningDialog/WinningDialog"
 import Button from './components/UI/Button/Button'
+import io from 'socket.io-client';
+import OpponentSearchDialog from './components/OpponentSearchDialog/OponentSearchDialog';
+import JoinGameDialog from './components/JoinGameDialog/JoinGameDialog';
 
 const WHITE_HOME_INDEX = -1;
 const BLACK_HOME_INDEX = 24;
@@ -15,21 +18,91 @@ const BLACK_PLAYER = 2;
 const WHITE_FIRST_HOME_FIELD_INDEX = 18; // The 19th field is the first home field
 const BLACK_FIRST_HOME_FIELD_INDEX = 5; // The 5th field is the first home field
 
+
+//let socket = io();
+
 class App extends Component {
 
+  
   state = {
     positions: Array(24).fill({ player: 0, pawns: 0 }),
     newGame: false,
-    currentPlayer: 1,
+    currentPlayer: 1, // TODO: I could easily change this to "black" "white" instead
     dice: [],
     newDiceIndex: 0,
     remainingMoves: {},
     bar: Array(2).fill( {pawns: 0 }),
     movingCheckerIndex: false,
-    winningPlayer: false
+    winningPlayer: false,
+    ID: false,
+    myPlayer: 1, // 1 for white, 2 for black (TODO: also change it to string (see above comment))
+    myName: undefined,
+    showJoinGameDialog: true
+  };
+
+  // useEffect(() => {
+  //   socket.current = io();
+  // });
+
+  configureSocket = () => {
+    
+    this.socket = io();
+
+    this.socket.on('your id', idObj => {
+      this.setState({
+        ID: idObj.socketId,
+        myPlayer: idObj.playerIdent,
+        myName: idObj.name
+      }, () => {
+        console.log("App.js CLIENT received ID from server: " + this.state.ID + ", I'm player: " + idObj.playerIdent + ", " + this.state.myName);
+      });
+    });
+
+    this.socket.on('newgame', () => {
+      console.log("client recieved newgame");
+      this.initializeBoard();
+    });
+
+    this.socket.on('pieceselected', (index) => {
+      console.log("client recieved pieceselected: " + index);
+      this.onPieceSelected(index);
+    });
+
+    this.socket.on('message', (msg) => {
+    this.setState({
+      positions: msg.positions,
+      bar: msg.bar,
+      dice: msg.dice,
+      newDiceIndex: msg.newDiceIndex
+          // ...message, 
+          // myPlayer: this.state.myPlayer,
+          // ID: this.state.ID,
+          // remainingMoves: {}
+      });
+    });
+    this.socket.on('piecemoved', (destinationIndex, handler) => {
+      console.log("client recieved piecemoved: " + destinationIndex + ", " + handler);
+      this.onPieceMovedToHandler(destinationIndex, handler, true);
+    });
+
+    this.socket.on('player', (player) => {
+      console.log("client recieved message about changing player from: " + this.state.currentPlayer + " to: " + player + "; NewGame: " + this.state.newGame);
+      this.setState({ 
+        currentPlayer: player
+       });
+    });
+    this.socket.on('connect', () => {
+      console.log("connect on client side: " + this.socket.id);
+    });
+    this.socket.on('playerJoinGame', (name) => {
+      console.log("playerJoinGame on client side: " + name);
+    });
+  };
+
+  constructor() {
+    super();
+    
   }
-
-
   checkHasPiecesOnBar = (player) => {
     if(player !== undefined && player-1 < this.state.bar.length) {
       return this.state.bar[player-1].pawns > 0;
@@ -612,10 +685,40 @@ class App extends Component {
     }
     return countBlack;
   }
+
+  onStartNewGame = () => {
+    // clear the board
+    this.setState({
+      positions: Array(24).fill({ player: 0, pawns: 0 }),
+      newGame: false,
+      currentPlayer: 1,
+      dice: [],
+      newDiceIndex: 0,
+      remainingMoves: {},
+      bar: Array(2).fill( {pawns: 0 }),
+      movingCheckerIndex: false,
+      winningPlayer: false,
+      ID: false,
+      myPlayer: 1, // 1 for white, 2 for black (TODO: also change it to string (see above comment))
+      myName: undefined,
+      showJoinGameDialog: true
+    });
+  }
+
   startNewGameHandler = () => {
     
+    this.setState({
+      showOpponentSearchDlg: false
+    });
+
+    this.initializeBoard();
+    //this.socket.emit('newgame');
+  }
+
+  initializeBoard = () => {
+    
     let points = Array(24).fill({player: 0, pawns: 0});
-    console.log("startNewGameHandler");
+    console.log("initializeBoard");
     points[0] = { player: 1, pawns: 2 };
     points[5] = { player: 2, pawns: 5 };
     points[7] = { player: 2, pawns: 3 };
@@ -637,7 +740,6 @@ class App extends Component {
       blackIsBearingOff: false
    });
   } 
-
   _test_bug = () => {
     
     
@@ -704,8 +806,10 @@ class App extends Component {
           if(Object.keys(this.state.remainingMoves).length === 0) {
         
             console.log("no more moves available: switch the player");
+            let nextPlayer = (this.state.currentPlayer===1 ? 2: 1);
+            this.socket.emit('player', nextPlayer);
             this.setState((state, props) => ({
-              currentPlayer: (state.currentPlayer===1 ? 2: 1),
+              currentPlayer: nextPlayer,
               remainingMoves: []
             }), () => {
               if(calculateMoveFinished) {
@@ -721,8 +825,13 @@ class App extends Component {
     }
   }
 
-  onPieceSelectedHandler  = (index) => {
+  // called from the server to update the state from other clients
+  onPieceSelected = (index) => {
+    this.setState({movingCheckerIndex: index});
+  }
 
+  onPieceSelectedHandler  = (index) => {
+    this.socket.emit('pieceselected', index);
     if(this.state.movingCheckerIndex === false) {
       this.setState({
         movingCheckerIndex: index
@@ -733,6 +842,7 @@ class App extends Component {
           destinationFields = fields
         });
         */
+       
       });
     } else {
       this.setState({
@@ -747,8 +857,11 @@ class App extends Component {
   }
 
   // This is called if a pawn was clicked (through Pawn.js). Now the available target moves will be highlighted.
-  onPieceMovedToHandler = (destinationIndex, onMoveFinishedHandler) => {
+  onPieceMovedToHandler = (destinationIndex, onMoveFinishedHandler, isFromServer) => {
     
+    // if(isFromServer === undefined) {
+    //   this.socket.emit('piecemoved', destinationIndex, onMoveFinishedHandler);
+    // }
     destinationIndex = destinationIndex - 1;
 
     let usedDiceToMove = Math.abs(destinationIndex - this.state.movingCheckerIndex);
@@ -867,10 +980,19 @@ class App extends Component {
                   this.setState((prevState, props) => ({
                     dice: newDice
                   }), () => {
+
+                    // updated the state of the dice. 
+                    // Now let the server know to broadcast the change to the other player
+                    //let socket = io(); if I call this, I get a new connection on the server
+                    this.socket.emit('message', this.state);
+
                     if(this.state.dice.length === 0) {
                       console.log("no more moves available: switch the player");
+                      let nextPlayer = (this.state.currentPlayer===1 ? 2: 1);
+                      this.socket.emit('player', nextPlayer);
+
                       this.setState((state, props) => ({
-                        currentPlayer: (state.currentPlayer===1 ? 2: 1),
+                        currentPlayer: nextPlayer,
                         remainingMoves: {} 
                       }));
                     } else {
@@ -1145,9 +1267,29 @@ class App extends Component {
     });
   }
 
+  onGameCancelled = () => {
+    console.log("game cancelled");
+    this.setState({
+      showOpponentSearchDlg: false,
+      showJoinGameDialog: false
+    });
+  }
+  onJoinGame = (name) => {
+    this.setState({
+      myName: name,
+      showOpponentSearchDlg: true,
+      showJoinGameDialog: false
+    }, () => {
+      //this.socket.emit('joinGame', name);
+    });
+
+    this.socket.emit('joinGame', name);
+
+  }
+
   onBoardClicked = () => {
     // unselect the target field if the user clicked anywhere on the board
-    if(this.state.movingCheckerIndex !== false) {
+    if(this.currentPlayer === this.myPlayer && this.state.movingCheckerIndex !== false) {
       this.setState({
         movingCheckerIndex: false
       });
@@ -1157,8 +1299,13 @@ class App extends Component {
   render() {
   
     let canRollDice = false;
-    if(Object.keys(this.state.remainingMoves).length === 0 && this.state.newGame) {
-      canRollDice = true;
+    //console.log("currentPlayer: " + this.state.currentPlayer + ", myPlayer: " + this.state.myPlayer + ", newGame: " + this.state.newGame + ", remainingMoves: " + Object.keys(this.state.remainingMoves).length);
+    //console.log("test: compare: " + (this.state.currentPlayer === this.state.myPlayer));
+    if(Object.keys(this.state.remainingMoves).length === 0 &&
+      this.state.newGame &&
+      this.state.currentPlayer === this.state.myPlayer) {
+        console.log("setting canRollDice to true");
+        canRollDice = true;
     }
 
     let test = null;
@@ -1187,34 +1334,42 @@ class App extends Component {
     }
 
     let test2 = true;
-
+    let showModalDlg = this.state.showJoinGameDialog || this.state.showWinnerDialog || this.state.showOpponentSearchDlg;
+    let modalDialog;
+    if(this.state.showWinnerDialog) {
+      modalDialog = <WinningDialog winner={this.state.showWinnerDialog} clicked={this.gameOver}/>
+    } else if(this.state.showJoinGameDialog) {
+      modalDialog = <JoinGameDialog clicked={this.onJoinGame} />
+    } else if(this.state.showOpponentSearchDlg) {
+      modalDialog = <OpponentSearchDialog ID={this.state.ID} player1={this.state.myName} server={this.socket} clicked={this.startNewGameHandler} cancel={this.onGameCancelled} />
+      this.socket.emit('getOpponent', this.state.ID);
+    }
     return (
       <Aux>
-        <Modal show={this.state.showWinnerDialog} modalClosed={this.purchaseCancelHandler}>
-          <WinningDialog 
-            winner={this.state.showWinnerDialog} clicked={this.gameOver}/>
+        <Modal show={showModalDlg} modalClosed={this.purchaseCancelHandler}>
+          {modalDialog}  
         </Modal>
         <Layout>
-            <Button clicked={this.startNewGameHandler} buttonType="Start">New Game</Button>
-            <button onClick={this._test_bug}>TEST BUG</button>
+            <Button clicked={this.onStartNewGame} buttonType="Start">New Game</Button>
+            
           <Board 
-          clicked={this.onBoardClicked}
-          pawnPositions={this.state.positions} 
-          throwDice={this.onThrowDice} 
-          pieceMoved={test} // TODO: rename to pieceSelected
-          roll1={this.state.dice[0]}  
-          roll2={this.state.dice[1]} 
-          roll={this.state.dice}
-          diceActiveIndex={this.state.newDiceIndex}
-          disabled={!canRollDice}
-          color={this.state.currentPlayer === 1 ? "White" : "Black"}
-          bar={this.state.bar}
-          possibleMoves={this.state.remainingMoves}
-          movingCheckerIndex={this.state.movingCheckerIndex}
-          checkersAtHome={{ 
-            whiteCheckers: nbrOfWhiteCheckersOffBoard,
-            blackCheckers: nbrOfBlackCheckersOffBoard
-          }}
+            clicked={this.onBoardClicked}
+            pawnPositions={this.state.positions} 
+            throwDice={this.onThrowDice} 
+            pieceMoved={test} // TODO: rename to pieceSelected
+            roll1={this.state.dice[0]}  
+            roll2={this.state.dice[1]} 
+            roll={this.state.dice}
+            diceActiveIndex={this.state.newDiceIndex}
+            disabled={!canRollDice}
+            color={this.state.currentPlayer === 1 ? "White" : "Black"}
+            bar={this.state.bar}
+            possibleMoves={this.state.remainingMoves}
+            movingCheckerIndex={this.state.movingCheckerIndex}
+            checkersAtHome={{ 
+              whiteCheckers: nbrOfWhiteCheckersOffBoard,
+              blackCheckers: nbrOfBlackCheckersOffBoard
+            }}
           />
           
           </Layout>
@@ -1223,7 +1378,12 @@ class App extends Component {
       
     }
 
+    componentDidUpdate() {
+      
+    }
+
     componentDidMount() {
+      this.configureSocket();
       const IS_TESTING = false;
       if(IS_TESTING) {
         console.log("the component did mount");
