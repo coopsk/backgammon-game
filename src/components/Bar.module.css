@@ -1,7 +1,7 @@
 .Bar {
-    background-color: #94bfce;
+    background-color: rgb(80,50,0);
     display: flex;
     width: 100%;
     height: inherit;
-    box-shadow: inset 0px -20px 20px -2px rgba(48,85,111,.75);
+    /*box-shadow: inset 0px -20px 20px -2px rgba(66,43,24,.75);*/
 }

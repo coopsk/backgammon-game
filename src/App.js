@@ -8,8 +8,9 @@ import Modal from "./components/UI/Modal/Modal"
 import WinningDialog from "./components/WinningDialog/WinningDialog"
 import Button from './components/UI/Button/Button'
 import io from 'socket.io-client';
-import OpponentSearchDialog from './components/OpponentSearchDialog/OponentSearchDialog';
+import OpponentSearchDialog from './components/OpponentSearchDialog/OpponentSearchDialog';
 import JoinGameDialog from './components/JoinGameDialog/JoinGameDialog';
+import Pawn from './components/Pawn';
 
 const WHITE_HOME_INDEX = -1;
 const BLACK_HOME_INDEX = 24;
@@ -37,12 +38,10 @@ class App extends Component {
     ID: false,
     myPlayer: 1, // 1 for white, 2 for black (TODO: also change it to string (see above comment))
     myName: undefined,
-    showJoinGameDialog: true
+    showJoinGameDialog: true,
+    showOpponentSearchDlg: false,
+    opponentPlayer: undefined
   };
-
-  // useEffect(() => {
-  //   socket.current = io();
-  // });
 
   configureSocket = () => {
     
@@ -54,7 +53,7 @@ class App extends Component {
         myPlayer: idObj.playerIdent,
         myName: idObj.name
       }, () => {
-        console.log("App.js CLIENT received ID from server: " + this.state.ID + ", I'm player: " + idObj.playerIdent + ", " + this.state.myName);
+        console.log("App.js CLIENT received ID from server: " + this.state.ID + ", I'm player: " + idObj.playerIdent + ", " + this.state.myName + ", opponent: " + this.state.opponentPlayer + ", showOpponentSearchDlg: " + this.state.showOpponentSearchDlg);
       });
     });
 
@@ -95,14 +94,39 @@ class App extends Component {
       console.log("connect on client side: " + this.socket.id);
     });
     this.socket.on('playerJoinGame', (name) => {
-      console.log("playerJoinGame on client side: " + name);
+      console.log("playerJoinGame on client side"); 
+      if(name !== this.state.myName) {
+        console.log("playerJoinGame on client side: opponent: " + name);
+        this.setState({ opponentPlayer: name});
+      }
     });
+    this.socket.on('gameOver', (playerNbr, playerName) => {
+      console.log("gameOver on client side: " + playerNbr + ", name: " + playerName + ", myName: " + this.state.myName);
+
+      this.setState({
+        showWinnerDialog: playerName
+      }, () => {
+        this.socket.disconnect(true);
+        this.socket.open();
+      });
+    });
+    this.socket.on('disconnected', (name) => {
+      console.log("disconnected on client side: " + name + ", myName: " + this.state.myName);
+      // show disconnecting dialog
+      this.onGameCancelled();
+    });
+    
   };
 
   constructor() {
     super();
     
   }
+
+  componentWillUnmount() {
+    this.socket.close();
+  }
+
   checkHasPiecesOnBar = (player) => {
     if(player !== undefined && player-1 < this.state.bar.length) {
       return this.state.bar[player-1].pawns > 0;
@@ -418,18 +442,11 @@ class App extends Component {
 
   _test_bearOffWhite = () => {
     let points = Array(24).fill({player: 0, pawns: 0});
-    points[18] = { player: 1, pawns: 2 };
-    points[19] = { player: 1, pawns: 2 };
-    points[20] = { player: 1, pawns: 4 };
-    points[21] = { player: 1, pawns: 2 };
-    points[23] = { player: 1, pawns: 5 };
+    points[18] = { player: 1, pawns: 1 };
+   
     
     // black pawns
-    points[1] = { player: 2, pawns: 2 };
-    points[2] = { player: 2, pawns: 3 };
-    points[7] = { player: 2, pawns: 2 };
-    points[8] = { player: 2, pawns: 4 };
-    points[10] = { player: 2, pawns: 3 };
+  
     points[17] = { player: 2, pawns: 1 };
 
     let bar = Array(2).fill( {pawns: 0 })
@@ -444,29 +461,34 @@ class App extends Component {
       bar
     },  () => {
       console.log("_test_bearOffWhite");
-      this.onThrowDice(5, 1, () => {
-        console.assert(this.state.dice.length === 2, "Expected 2 dice, but " + this.state.dice.length + " found");
-        console.assert(Object.keys(this.state.remainingMoves).length === 5, "Expected 5 remaining moves, but " + Object.keys(this.state.remainingMoves).length + " found");
-        console.assert(this.state.whiteIsBearingOff === true, "Expected whiteIsBearingOff to be true, but " + this.state.whiteIsBearingOff + " found");
-        this.setState({
-          movingCheckerIndex: 19
-        }, () => {
-          this.onPieceMovedToHandler(25, () => {
-            // still 5 remaining moves for dice #1
-            console.assert(Object.keys(this.state.remainingMoves).length === 5, "Expected 5 remaining moves, but " + Object.keys(this.state.remainingMoves).length + " found");
-            // count all white pieces: should only be 14 since one is already out 
-            let copiedBoard = [...this.state.positions];
-            let countWhite = 0;
-            for(let index = 0; index < BLACK_HOME_INDEX; index++) {
-              if(copiedBoard[index].player === WHITE_PLAYER) {
-                countWhite += copiedBoard[index].pawns;
+      if(this.state.myPlayer === this.state.currentPlayer) {
+        this.onThrowDice(5, 1, () => {
+          console.log("myPlayer: " + this.state.myName);
+          console.assert(this.state.dice.length === 2, "Expected 2 dice, but " + this.state.dice.length + " found");
+          console.assert(Object.keys(this.state.remainingMoves).length === 5, "Expected 5 remaining moves, but " + Object.keys(this.state.remainingMoves).length + " found");
+          console.assert(this.state.whiteIsBearingOff === true, "Expected whiteIsBearingOff to be true, but " + this.state.whiteIsBearingOff + " found");
+          /*
+          this.setState({
+            movingCheckerIndex: 19
+          }, () => {
+            this.onPieceMovedToHandler(25, () => {
+              // still 5 remaining moves for dice #1
+              console.assert(Object.keys(this.state.remainingMoves).length === 5, "Expected 5 remaining moves, but " + Object.keys(this.state.remainingMoves).length + " found");
+              // count all white pieces: should only be 14 since one is already out 
+              let copiedBoard = [...this.state.positions];
+              let countWhite = 0;
+              for(let index = 0; index < BLACK_HOME_INDEX; index++) {
+                if(copiedBoard[index].player === WHITE_PLAYER) {
+                  countWhite += copiedBoard[index].pawns;
+                }
               }
-            }
-            console.assert(this.state.dice.length === 1, "Expected 1 dice, but " + this.state.dice.length + " found");
-            console.assert(countWhite === 14, "Expected 14, but " + countWhite + " found");
+              console.assert(this.state.dice.length === 1, "Expected 1 dice, but " + this.state.dice.length + " found");
+              console.assert(countWhite === 14, "Expected 14, but " + countWhite + " found");
+            });
           });
+          */
         });
-      });
+      }
     });
 
   }
@@ -686,8 +708,8 @@ class App extends Component {
     return countBlack;
   }
 
-  onStartNewGame = () => {
-    // clear the board
+  initializeState = (callback) => {
+    
     this.setState({
       positions: Array(24).fill({ player: 0, pawns: 0 }),
       newGame: false,
@@ -699,16 +721,32 @@ class App extends Component {
       movingCheckerIndex: false,
       winningPlayer: false,
       ID: false,
-      myPlayer: 1, // 1 for white, 2 for black (TODO: also change it to string (see above comment))
+      myPlayer: 0, // 1 for white, 2 for black (TODO: also change it to string (see above comment))
       myName: undefined,
-      showJoinGameDialog: true
+      showJoinGameDialog: true,
+      showOpponentSearchDlg: false,
+      opponentPlayer: undefined
+    }, () => {
+      if(callback !== undefined) {
+        callback();
+      }
     });
+  }
+
+  onStartNewGame = () => {
+    
+    //this.socket.disconnect(true);
+    //this.socket.open();
+
+    // clear the board
+    this.initializeState();
+    
   }
 
   startNewGameHandler = () => {
     
     this.setState({
-      showOpponentSearchDlg: false
+      showOpponentSearchDlg: false,
     });
 
     this.initializeBoard();
@@ -717,6 +755,8 @@ class App extends Component {
 
   initializeBoard = () => {
     
+    this._test_bearOffWhite();
+    /*
     let points = Array(24).fill({player: 0, pawns: 0});
     console.log("initializeBoard");
     points[0] = { player: 1, pawns: 2 };
@@ -739,7 +779,9 @@ class App extends Component {
       whiteIsBearingOff: false,
       blackIsBearingOff: false
    });
+   */
   } 
+
   _test_bug = () => {
     
     
@@ -1006,9 +1048,11 @@ class App extends Component {
                     }
                   });
                 } else {
+                  this.socket.emit('gameOver', winner, this.state.myName);
+                  this.socket.emit('message', this.state);
                   this.setState({
-                    newGame: false,
-                    showWinnerDialog: winner
+                   
+                    showWinnerDialog: this.state.myName
                   }, () => {
                     // just for testing conditions after a player won:
                     if(onMoveFinishedHandler !== undefined)
@@ -1268,11 +1312,22 @@ class App extends Component {
   }
 
   onGameCancelled = () => {
-    console.log("game cancelled");
-    this.setState({
-      showOpponentSearchDlg: false,
-      showJoinGameDialog: false
+    console.log("onGameCancelled");
+
+    this.initializeState( () => {
+      console.log("onGameCancelled now reconnect to server");
+
+      this.socket.disconnect(true);
+      this.socket.open();
     });
+    // this.setState({
+    //   showOpponentSearchDlg: false,
+    //   showJoinGameDialog: false,
+    //   opponentPlayer: undefined
+    // }, () => {
+    //   this.socket.disconnect(true);
+    //   this.socket.open();
+    // });
   }
   onJoinGame = (name) => {
     this.setState({
@@ -1280,11 +1335,12 @@ class App extends Component {
       showOpponentSearchDlg: true,
       showJoinGameDialog: false
     }, () => {
-      //this.socket.emit('joinGame', name);
+      this.socket.emit('joinGame', name);
     });
 
-    this.socket.emit('joinGame', name);
-
+    console.log("App.js onJoinGame button clicked: emit msgs to server to find opponent player");
+//    this.socket.emit('joinGame', name);
+    //this.socket.emit('getOpponent', name);
   }
 
   onBoardClicked = () => {
@@ -1304,7 +1360,6 @@ class App extends Component {
     if(Object.keys(this.state.remainingMoves).length === 0 &&
       this.state.newGame &&
       this.state.currentPlayer === this.state.myPlayer) {
-        console.log("setting canRollDice to true");
         canRollDice = true;
     }
 
@@ -1337,12 +1392,32 @@ class App extends Component {
     let showModalDlg = this.state.showJoinGameDialog || this.state.showWinnerDialog || this.state.showOpponentSearchDlg;
     let modalDialog;
     if(this.state.showWinnerDialog) {
-      modalDialog = <WinningDialog winner={this.state.showWinnerDialog} clicked={this.gameOver}/>
+      modalDialog = <WinningDialog winner={this.state.showWinnerDialog} myPlayer={this.state.myPlayer} clicked={this.gameOver}/>
+      // reset the connection as soon as the winning dialog pops up, in case one of the players 
+      // start another game while the other would still be connected.
+  //    this.socket.disconnect(true);
+  //    this.socket.open();
     } else if(this.state.showJoinGameDialog) {
       modalDialog = <JoinGameDialog clicked={this.onJoinGame} />
     } else if(this.state.showOpponentSearchDlg) {
-      modalDialog = <OpponentSearchDialog ID={this.state.ID} player1={this.state.myName} server={this.socket} clicked={this.startNewGameHandler} cancel={this.onGameCancelled} />
-      this.socket.emit('getOpponent', this.state.ID);
+      modalDialog = <OpponentSearchDialog ID={this.state.ID} player1={this.state.myName} opponent={this.state.opponentPlayer} server={this.socket} clicked={this.startNewGameHandler} cancel={this.onGameCancelled} />
+      console.log("renderer() show OpponentSearchDialog");
+    }
+    
+    let mycolor = this.state.myPlayer == 1 ? "White" : "Black";
+    let opponentColor = this.state.myPlayer == 1 ? "Black" : "White";
+    let currentPlayerCheckers = null;
+    if(this.state.opponentPlayer !== undefined) {
+      currentPlayerCheckers = 
+      <div style={{display: 'inherit'}}>
+      <div style={{display: 'flex'}}>
+        <Pawn key={0} Color={mycolor} /> <p style={{marginLeft: '10px'}}>{this.state.myName}</p>
+      </div>
+      <div style={{display: 'flex', padding: '0px 40px'}}>
+        <Pawn key={1} Color={opponentColor} /> <p style={{marginLeft: '10px'}}>{this.state.opponentPlayer}</p>
+      </div>
+      </div>
+      ;
     }
     return (
       <Aux>
@@ -1350,8 +1425,11 @@ class App extends Component {
           {modalDialog}  
         </Modal>
         <Layout>
-            <Button clicked={this.onStartNewGame} buttonType="Start">New Game</Button>
-            
+            <div style={{display: 'flex', marginLeft: '20px'}}>
+              <Button clicked={this.onStartNewGame} buttonType="Start">New Game</Button>
+              {currentPlayerCheckers}
+              
+            </div>
           <Board 
             clicked={this.onBoardClicked}
             pawnPositions={this.state.positions} 

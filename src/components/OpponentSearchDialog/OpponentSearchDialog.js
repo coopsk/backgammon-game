@@ -8,50 +8,54 @@ const OpponentSearchDialog = (props) => {
   const [state, setState] = useState({player2: ''});
   const [seconds, setSeconds] = useState(6);
   const [isActive, setIsActive] = useState(false);
-
+  const [intervalId, setIntervalId] = useState();
+  
   function startTimer() {
     setIsActive(true);
   }
 
   useEffect(() => {
-    props.server.on('getOpponent', (opponent) => {
-      console.log("OpponentSearchDialog.js getOpponent: found one: " + opponent);
-      if(opponent !== null) {
-        setState({ ...state, player2: opponent});
-        startTimer(); // start the countdown if an opponent was found
-      }
-    });
-  });
-
-  props.server.on('playerJoinGame', (name) => {
-    console.log("OpponentSearchDialog.js playerJoinGame on client side: " + name);
-    if(name !== null) {
-      setState({ ...state, player2: name});
-      startTimer();
+    if(props.opponent != undefined) {
+      setState({ player2: props.opponent});
+        startTimer();
     }
-  });
-
-  
+  }, props.opponent);
+ 
   useEffect(() => {
     let interval = null;
     if (isActive) {
-      interval = setInterval(() => {
+        console.log("sec: " + seconds);
+        interval = setInterval(() => {
         if (seconds < 1) {
+          console.log("seconds < 1 (1)");
           setIsActive(false);
           clearInterval(interval);
           props.clicked();
         } else {
-          setSeconds((seconds) => seconds - 1);
+          console.log("setSeconds: " + seconds);
+          //let var1 = seconds - 1;
+          setSeconds(seconds => seconds - 1);
         }
       }, 1000);
+      console.log("setIntervalId");
+  //    setIntervalId(interval);
+      
     } else if (seconds < 1) {
+      console.log("seconds < 1 (2)");
       clearInterval(interval);
       setIsActive(false);
       props.clicked();
     }
+   
     return () => clearInterval(interval);
-  }, [isActive, seconds]);
+  }, [isActive, seconds, props]);
 
+  function onBackClicked() {
+    console.log("onBackClicked");
+    setIsActive(false);
+    //clearInterval(intervalId);
+    props.cancel();
+  }
 
   const playerDivStyle = {
     display: "flex",
@@ -89,8 +93,6 @@ const OpponentSearchDialog = (props) => {
     borderRadius: "5px"
   };
 
-  let secondsVar;
-  //if(seconds)
   return (
     <Aux>
       <h3>Waiting for player to join</h3>
@@ -99,8 +101,8 @@ const OpponentSearchDialog = (props) => {
         {seconds !== 6 ? <div style={countDownStyle}>{seconds}</div> :  <div style={vsStyle}>VS</div> }
         <div style={style}>{state.player2 === '' ? '...' : state.player2}</div>
       </div>
-     
-      <Button style={btnStyle} buttonType="Continue" clicked={props.cancel}>Back</Button>
+      <Button style={btnStyle} buttonType="Continue" clicked={props.cancel}>Back</Button>     
+      
     </Aux>
     );
   };

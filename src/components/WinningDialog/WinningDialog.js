@@ -4,7 +4,7 @@ import Button from '../UI/Button/Button'
 
 const winningDialog = (props) => {
     
-    const playerWonStr = "Player " + props.winner + " won!";
+    const playerWonStr = props.winner + " won!";
     return (
         <Aux>
         <h3>Game over</h3>

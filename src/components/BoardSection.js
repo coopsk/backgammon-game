@@ -85,7 +85,7 @@ const boardSection = (props) => {
             contentAlignStyle.justifyContent = "flex-start";
 
         return (
-            <div className={classes.PawnWrapper} style={contentAlignStyle}><p><strong>{position}</strong></p>
+            <div className={classes.PawnWrapper} style={contentAlignStyle}>
             {pawns}
             {props.children}
             </div>

@@ -22,33 +22,21 @@ http.listen(5000, () => {
 io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log("server: user disconnected: " + socket.id);
-    //console.log('user disconnected: ' + socket.id + ", current White: " + this.whitePlayer + ", current Black: " + this.blackPlayer);
-    // if(this.whitePlayer === socket.id)
-    //     this.whitePlayer = undefined;
-    //   else if(this.blackPlayer === socket.id)
-    //     this.blackPlayer = undefined;
+    console.log('user disconnected: ' + socket.id + ", current White: " + this.whitePlayer + ", current Black: " + this.blackPlayer);
+    let name = undefined;
+    if(this.whitePlayer === socket.id) {
+      name = this.whitePlayerName;
+      this.whitePlayer = undefined;
+      this.whitePlayerName = undefined;
+      
+    } else if(this.blackPlayer === socket.id) {
+      name = this.blackPlayerName;
+      this.blackPlayer = undefined;
+      this.blackPlayerName = undefined;
+    }
+    console.log("user disconnected: current White: " + this.whitePlayer + ", current Black: " + this.blackPlayer);
+    socket.broadcast.emit('disconnected', name);
   });
-
-  // if(this.whitePlayer === undefined) {
-  //   console.log('First user user connected to play backgammon: ' + socket.id);
-  //   this.whitePlayer = socket.id;
-  //   let idObj = {
-  //     socketId: socket.id,
-  //     playerIdent: 1
-  //   }
-  //   socket.emit('your id', idObj);
-  // } else if(this.blackPlayer === undefined) {
-  //   console.log('Second user connected to play backgammon: ' + socket.id);
-  //   this.blackPlayer = socket.id;
-  //   let idObj = {
-  //     socketId: socket.id,
-  //     playerIdent: 2
-  //   }
-  //   socket.emit('your id', idObj);
-  // } else {
-  //   console.log("Two players are already playing. Wait your turn");
-  //   return;
-  // }
 
   socket.on('pieceselected', (index) => {
     console.log("pieceselected on server received: " + index);
@@ -74,6 +62,7 @@ io.on('connection', (socket) => {
         name: name
       }
       socket.emit('your id', idObj);
+      
     } else if(this.blackPlayer === undefined) {
       console.log('Second user connected to play backgammon: ' + socket.id);
       this.blackPlayer = socket.id;
@@ -85,6 +74,9 @@ io.on('connection', (socket) => {
         name: name
       }
       socket.emit('your id', idObj);
+      if(this.whitePlayer !== undefined) {
+        socket.emit('playerJoinGame', this.whitePlayerName);
+      }
     } else {
       console.log("Two players are already playing. Wait your turn");
       return;
@@ -100,19 +92,17 @@ io.on('connection', (socket) => {
     console.log("message on server received: " + msg);
     socket.broadcast.emit('message', msg); // io.emit would work too, but it goes to all clients
   });
+  
+  // EVENT: player
+  // This event lets clients know that the player changed
   socket.on('player', (player) => {
     console.log("message on server received: player: " + player);
     socket.broadcast.emit('player', player); // io.emit would work too, but it goes to all clients
   });
-  socket.on('getOpponent', (playerID) => {
-    
-    if(playerID === this.whitePlayer) {
-      console.log("Server: getOpponent on server received: playerID: " + this.whitePlayerName);
-      socket.emit('getOpponent', this.blackPlayerName);
-    } else if(playerID === this.blackPlayer) {
-      console.log("Server: getOpponent on server received: playerID: " + this.blackPlayerName);
-      socket.emit('getOpponent', this.whitePlayerName);
-    }
+
+  socket.on('gameOver', (playerNbr, playerName) => {
+    console.log("Server: gameOver on server received: " + playerNbr + ", " + playerName + " won the game");
+    socket.broadcast.emit('gameOver', playerNbr, playerName);
   });
 });
 

@@ -2,8 +2,8 @@
 .BearOffPanel {
     height: 100%;
     width: 15%;
-    /*background-color: lightsalmon; nice to debug*/
-    
+    background-color: #503200;
+    padding: 10px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -11,19 +11,23 @@
 }
 
 .Test {
-    background-color: #94bfce;
-    box-shadow: -5px -5px 10px 2px rgba(48, 85, 111, 0.5) inset, 5px 5px 5px 5px rgba(255, 255, 255, 0.0) inset;
+    display: flex;
+    flex-direction: column;
+    background-color: rgb(80,50,0);
+    box-shadow: -5px -5px 10px 2px rgba(0, 0, 0, 0.5) inset, 5px 5px 5px 5px rgba(0, 0, 0, 0) inset;
     height: 50%;
-    border-top: solid 1px lightblue;
+    border-top: solid 1px rgb(56, 36, 1);
     border-radius: 5px;
 }
 
 .Test2 {
-    background-color: #94bfce;
-    box-shadow: -5px -5px 10px 2px rgba(48, 85, 111, 0.5) inset, 5px 5px 5px 5px rgba(255, 255, 255, 0.0) inset;
+    background-color:rgb(80,50,0);
+    box-shadow: -5px -5px 10px 2px rgba(0, 0, 0, 0.5) inset, 5px 5px 5px 5px rgba(0, 0, 0, 0) inset;
     height: 50%;
-    border-bottom: solid 1px lightblue;
+    border-bottom: solid 1px rgb(56, 36, 1);
     border-radius: 5px;
+    display: flex;
+    flex-direction: column;
 }
 
 .CanReceiveChecker {
