@@ -57,33 +57,21 @@ class App extends Component {
       });
     });
 
-    this.socket.on('newgame', () => {
-      console.log("client recieved newgame");
-      this.initializeBoard();
-    });
-
     this.socket.on('pieceselected', (index) => {
       console.log("client recieved pieceselected: " + index);
       this.onPieceSelected(index);
     });
 
-    this.socket.on('message', (msg) => {
-    this.setState({
-      positions: msg.positions,
-      bar: msg.bar,
-      dice: msg.dice,
-      newDiceIndex: msg.newDiceIndex
-          // ...message, 
-          // myPlayer: this.state.myPlayer,
-          // ID: this.state.ID,
-          // remainingMoves: {}
-      });
+    this.socket.on('updateBoard', (msg) => {
+      console.log("App.js: ???? new position received from server");
+      this.setState({
+        positions: msg.positions,
+        bar: msg.bar,
+        dice: msg.dice,
+        newDiceIndex: msg.newDiceIndex
+        });
     });
-    this.socket.on('piecemoved', (destinationIndex, handler) => {
-      console.log("client recieved piecemoved: " + destinationIndex + ", " + handler);
-      this.onPieceMovedToHandler(destinationIndex, handler, true);
-    });
-
+   
     this.socket.on('player', (player) => {
       console.log("client recieved message about changing player from: " + this.state.currentPlayer + " to: " + player + "; NewGame: " + this.state.newGame);
       this.setState({ 
@@ -725,7 +713,9 @@ class App extends Component {
       myName: undefined,
       showJoinGameDialog: true,
       showOpponentSearchDlg: false,
-      opponentPlayer: undefined
+      opponentPlayer: undefined,
+      whiteIsBearingOff: false,
+      blackIsBearingOff: false
     }, () => {
       if(callback !== undefined) {
         callback();
@@ -734,29 +724,17 @@ class App extends Component {
   }
 
   onStartNewGame = () => {
-    
-    //this.socket.disconnect(true);
-    //this.socket.open();
-
     // clear the board
     this.initializeState();
-    
   }
 
   startNewGameHandler = () => {
     
-    this.setState({
-      showOpponentSearchDlg: false,
-    });
-
     this.initializeBoard();
-    //this.socket.emit('newgame');
   }
 
   initializeBoard = () => {
     
-    this._test_bearOffWhite();
-    /*
     let points = Array(24).fill({player: 0, pawns: 0});
     console.log("initializeBoard");
     points[0] = { player: 1, pawns: 2 };
@@ -777,9 +755,9 @@ class App extends Component {
       remainingMoves: {},
       bar: Array(2).fill( {pawns: 0 }),
       whiteIsBearingOff: false,
-      blackIsBearingOff: false
+      blackIsBearingOff: false,
+      showOpponentSearchDlg: false
    });
-   */
   } 
 
   _test_bug = () => {
@@ -899,11 +877,8 @@ class App extends Component {
   }
 
   // This is called if a pawn was clicked (through Pawn.js). Now the available target moves will be highlighted.
-  onPieceMovedToHandler = (destinationIndex, onMoveFinishedHandler, isFromServer) => {
+  onPieceMovedToHandler = (destinationIndex, onMoveFinishedHandler) => {
     
-    // if(isFromServer === undefined) {
-    //   this.socket.emit('piecemoved', destinationIndex, onMoveFinishedHandler);
-    // }
     destinationIndex = destinationIndex - 1;
 
     let usedDiceToMove = Math.abs(destinationIndex - this.state.movingCheckerIndex);
@@ -951,22 +926,12 @@ class App extends Component {
               copiedBoard[actualIndex].pawns = copiedBoard[actualIndex].pawns - 1;
             else {
               copiedBar[currentPlayer-1].pawns--;
-              /*
-              let max = [...this.state.bar];
-              max[currentPlayer-1].pawns--;
-
-              this.setState({
-                bar: max
-              })
-              */
             }
             if(pieceOnBar === false && copiedBoard[actualIndex].pawns === 0)
               copiedBoard[actualIndex].player = 0;
 
             // Check if the piece is bearing off. If yes, don't try getting destination field
             if(destinationIndex < 24) {
-            
-
               // Check if a piece was hit
               let destField = copiedBoard[destinationIndex];
               if(destField != undefined) {
@@ -1026,7 +991,7 @@ class App extends Component {
                     // updated the state of the dice. 
                     // Now let the server know to broadcast the change to the other player
                     //let socket = io(); if I call this, I get a new connection on the server
-                    this.socket.emit('message', this.state);
+                    this.socket.emit('updateBoard', this.state);
 
                     if(this.state.dice.length === 0) {
                       console.log("no more moves available: switch the player");
@@ -1049,7 +1014,7 @@ class App extends Component {
                   });
                 } else {
                   this.socket.emit('gameOver', winner, this.state.myName);
-                  this.socket.emit('message', this.state);
+                  this.socket.emit('updateBoard', this.state);
                   this.setState({
                    
                     showWinnerDialog: this.state.myName
@@ -1337,10 +1302,6 @@ class App extends Component {
     }, () => {
       this.socket.emit('joinGame', name);
     });
-
-    console.log("App.js onJoinGame button clicked: emit msgs to server to find opponent player");
-//    this.socket.emit('joinGame', name);
-    //this.socket.emit('getOpponent', name);
   }
 
   onBoardClicked = () => {

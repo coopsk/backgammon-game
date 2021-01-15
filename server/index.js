@@ -43,12 +43,6 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('pieceselected', index);
   });
 
-  socket.on('piecemoved', (destinationIndex, handler) => {
-    console.log("piecemoved on server received: " + destinationIndex + ", " + handler);
-    socket.broadcast.emit('piecemoved', destinationIndex, handler); // io.emit would work too, but it goes to all clients
-    
-  });
-  
   socket.on('joinGame', (name) => {
     console.log("Server: joinGame on the server received");
     if(this.whitePlayer === undefined) {
@@ -84,20 +78,17 @@ io.on('connection', (socket) => {
 
     socket.broadcast.emit('playerJoinGame', name); 
   });
-  socket.on('newgame', () => {
-    console.log("Newgame started message on server received");
-    socket.broadcast.emit('newgame'); 
-  });
-  socket.on('message', (msg) => {
+  
+  socket.on('updateBoard', (msg) => {
     console.log("message on server received: " + msg);
-    socket.broadcast.emit('message', msg); // io.emit would work too, but it goes to all clients
+    socket.broadcast.emit('updateBoard', msg);
   });
   
   // EVENT: player
   // This event lets clients know that the player changed
   socket.on('player', (player) => {
     console.log("message on server received: player: " + player);
-    socket.broadcast.emit('player', player); // io.emit would work too, but it goes to all clients
+    socket.broadcast.emit('player', player);
   });
 
   socket.on('gameOver', (playerNbr, playerName) => {
