@@ -5,8 +5,8 @@ import Pawn from './Pawn'
 
 const boardSection = (props) => {
 
+    /*
     var parentEl = document.getElementById("cards");
-
 
     function sortPawns() {
         var cards = document.getElementsByClassName(classes.PawnWrapper),
@@ -19,13 +19,12 @@ const boardSection = (props) => {
             cards[i].style.transform = "translateX(-" + offset * i + "px)";
         }
     }
+    */
 
     function getSelectableFields() {
         let possibleMoves = [];
         if(props.movingCheckerIndex === false) { 
             const possibleMoveIndexArray = Object.keys(props.possibleMoves);
-            //console.log("this.state.remainingMoves: " + props.possibleMoves);
-        
             possibleMoves = possibleMoveIndexArray.map((item) => {
                 return Number(item);
             });
@@ -62,11 +61,6 @@ const boardSection = (props) => {
             else
                 color = "Black";
 
-            let lenPossMoves = props.possibleMoves.length;
-            if(lenPossMoves !== 0) {
-                //console.log("lsdkjfsd");
-            }
-
             let canMovePawn = false;
             const checkMoves = getSelectableFields();
             if(checkMoves.indexOf(index) !== -1) {
@@ -93,25 +87,11 @@ const boardSection = (props) => {
     }
 
     function constructField(index, color, direction) {
-        // Why is destFields empty? 
-        /*
-        let possibleMovesNumbers = [];
-        if(props.possibleMoves != null) {
-            possibleMovesNumbers = Object.keys(props.possibleMoves).map((item) => { return Number(item); });
-        }
 
-        let destFields = possibleMovesNumbers.map((key) => {
-            return props.possibleMoves[key].map((dice) => {
-            return key + dice;
-            });
-        });
-        */
         const destinationFields = getDestinationFields(index, color);
-        //let canReceive = destinationFields.length > 0;
-        //let canReceive = index - 1 === props.movingCheckerIndex;
-       let canReceive = destinationFields.indexOf(index) != -1;
+        let canReceive = destinationFields.indexOf(index) != -1;
         return (
-        <TriangleField Color={color} Direction={direction} pieceMoved={props.pieceMoved} isDestField={canReceive} index={index}>
+            <TriangleField Color={color} Direction={direction} pieceMoved={props.pieceMoved} isDestField={canReceive} index={index}>
             {createPawnsOnBoard(index)}
         </TriangleField>);
     }
@@ -159,7 +139,6 @@ const boardSection = (props) => {
     return (
         <div style={style}>
         {section}
-        
         </div>
     );
 }

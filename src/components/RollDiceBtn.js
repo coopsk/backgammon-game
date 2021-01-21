@@ -14,7 +14,7 @@ const RollDiceButton = (props) => {
 
     const dice = Object.keys( props.roll )
         .map( igKey => {
-            // TODO: remove diceActiveIndex. It's not used anymore
+            
             if(igKey === props.diceActiveIndex)
                 return <p style={{fontSize: '50px', display: 'inline', paddingRight: '15px'}} key={igKey}>{props.roll[igKey]}</p>
             else

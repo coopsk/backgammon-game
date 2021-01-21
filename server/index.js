@@ -1,8 +1,13 @@
+var fs = require('fs');
 const path = require("path");
 const express = require("express");
-const app = express(); // create express app
-
-const http = require('http').createServer(app);
+const app = express();
+var options = {
+  key: fs.readFileSync('./key.pem'),
+  cert: fs.readFileSync('./certificate.crt'),
+  secure: true
+};
+const http = require('http').createServer(app);//require('https').createServer(options, app);
 const io = require('socket.io')(http);
 
 // add middlewares
@@ -15,14 +20,12 @@ app.use((req, res, next) => {
 
 // start express server on port 5000
 http.listen(5000, () => {
-  console.log("server started on port 5000 for the backgammon game");
+  console.log("server started on port 5000");
 });
 
 
 io.on('connection', (socket) => {
   socket.on('disconnect', () => {
-    console.log("server: user disconnected: " + socket.id);
-    console.log('user disconnected: ' + socket.id + ", current White: " + this.whitePlayer + ", current Black: " + this.blackPlayer);
     let name = undefined;
     if(this.whitePlayer === socket.id) {
       name = this.whitePlayerName;
@@ -34,7 +37,7 @@ io.on('connection', (socket) => {
       this.blackPlayer = undefined;
       this.blackPlayerName = undefined;
     }
-    console.log("user disconnected: current White: " + this.whitePlayer + ", current Black: " + this.blackPlayer);
+    console.log('user disconnected: ' + socket.id + ", current White: " + this.whitePlayer + ", current Black: " + this.blackPlayer);
     socket.broadcast.emit('disconnected', name);
   });
 
@@ -44,9 +47,8 @@ io.on('connection', (socket) => {
   });
 
   socket.on('joinGame', (name) => {
-    console.log("Server: joinGame on the server received");
     if(this.whitePlayer === undefined) {
-      console.log('--- First user user connected to play backgammon: ' + socket.id);
+      console.log('First user user connected to play backgammon: ' + socket.id);
       this.whitePlayer = socket.id;
       this.whitePlayerName = name;
       
@@ -80,14 +82,14 @@ io.on('connection', (socket) => {
   });
   
   socket.on('updateBoard', (msg) => {
-    console.log("message on server received: " + msg);
+    console.log("updateBoard message on server received: " + msg);
     socket.broadcast.emit('updateBoard', msg);
   });
   
   // EVENT: player
   // This event lets clients know that the player changed
   socket.on('player', (player) => {
-    console.log("message on server received: player: " + player);
+    console.log("player message on server received: " + player);
     socket.broadcast.emit('player', player);
   });
 

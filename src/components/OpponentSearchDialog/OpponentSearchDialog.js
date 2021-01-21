@@ -1,14 +1,12 @@
-import React, { useState, useEffect, useRef} from 'react'
+import React, { useState, useEffect} from 'react'
 import Aux from '../../hoc/Auxx';
 import Button from '../UI/Button/Button'
-import TextField from '@material-ui/core/TextField';
 
 const OpponentSearchDialog = (props) => {
   
   const [state, setState] = useState({player2: ''});
   const [seconds, setSeconds] = useState(6);
   const [isActive, setIsActive] = useState(false);
-  const [intervalId, setIntervalId] = useState();
   
   function startTimer() {
     setIsActive(true);
@@ -24,24 +22,17 @@ const OpponentSearchDialog = (props) => {
   useEffect(() => {
     let interval = null;
     if (isActive) {
-        console.log("sec: " + seconds);
         interval = setInterval(() => {
         if (seconds < 1) {
-          console.log("seconds < 1 (1)");
           setIsActive(false);
           clearInterval(interval);
           props.clicked();
         } else {
-          console.log("setSeconds: " + seconds);
-          //let var1 = seconds - 1;
           setSeconds(seconds => seconds - 1);
         }
       }, 1000);
-      console.log("setIntervalId");
-  //    setIntervalId(interval);
-      
+     
     } else if (seconds < 1) {
-      console.log("seconds < 1 (2)");
       clearInterval(interval);
       setIsActive(false);
       props.clicked();
@@ -59,7 +50,6 @@ const OpponentSearchDialog = (props) => {
 
   const playerDivStyle = {
     display: "flex",
-    //border: "1px solid red",
     minHeight: "50px",
     justifyContent: "space-between"
   }
@@ -78,7 +68,6 @@ const OpponentSearchDialog = (props) => {
 
   const vsStyle = {
     lineHeight: "100px",
-    //fontWeight: "bold",
     fontSize: "xxx-large"
   }
 
