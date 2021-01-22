@@ -2,11 +2,11 @@ var fs = require('fs');
 const path = require("path");
 const express = require("express");
 const app = express();
-var options = {
-  key: fs.readFileSync('./key.pem'),
-  cert: fs.readFileSync('./certificate.crt'),
-  secure: true
-};
+// var options = {
+//   key: fs.readFileSync('./key.pem'),
+//   cert: fs.readFileSync('./certificate.crt'),
+//   secure: true
+// };
 const http = require('http').createServer(app);//require('https').createServer(options, app);
 const io = require('socket.io')(http);
 
